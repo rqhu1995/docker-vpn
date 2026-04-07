@@ -189,11 +189,18 @@ openconnect() {
         vpnCmd+=("${OC_HOST}")
         vpnCmd+=("--user" "${OC_USER}")
 
-        if [ -f "${vpnSecret}" ]; then
-            vpnCmd+=("--passwd-on-stdin")
-        else
-            vpnCmd+=("--no-passwd")
-        fi
+    if [ -f "${vpnSecret}" ]; then
+        # Make sure we're in fully interactive TTY mode
+        dockerCmd+=("--interactive" "--tty")
+        dockerCmd+=("$dockerImage")
+        
+        # Send initial credentials but allow interactive prompt for 2FA
+        cat "${vpnSecret}" | "${dockerCmd[@]}" "${vpnCmd[@]}"
+    else
+        dockerCmd+=("--interactive" "--tty")
+        dockerCmd+=("$dockerImage")
+        "${dockerCmd[@]}" "${vpnCmd[@]}"
+    fi
         if ! [ -z "{$OC_GROUP}" ]; then
             vpnCmd+=("--authgroup" "${OC_GROUP}")
         fi
@@ -218,9 +225,12 @@ openconnect() {
     echo "============================================"
 
     if [ -f "${vpnSecret}" ]; then
-        dockerCmd+=("--interactive")
+        # Make sure we're in fully interactive TTY mode
+        dockerCmd+=("--interactive" "--tty")
         dockerCmd+=("$dockerImage")
-        cat "${vpnSecret}" - | "${dockerCmd[@]}" "${vpnCmd[@]}"
+        
+        # Send initial credentials but allow interactive prompt for 2FA
+        cat "${vpnSecret}" | "${dockerCmd[@]}" "${vpnCmd[@]}"
     else
         dockerCmd+=("--interactive" "--tty")
         dockerCmd+=("$dockerImage")
