@@ -5,8 +5,8 @@ Connect to HKU's VPN from a Docker container — then use the tunnel as a
 
 **The problem:** HKU's official Cisco AnyConnect client routes *all* your
 traffic through the VPN. That means slower speeds, privacy trade-offs,
-and broken workflows — especially in mainland China where you need HKU
-resources *and* sites like Google, GitHub, and ChatGPT at the same time.
+and broken workflows — when you need HKU
+resources (HKU Library academic resources, in-campus remote desktops) *and* sites like Claude (Code) and ChatGPT (Currently are not available in Hong Kong and requite additional proxy to bypass the access restrictions) at the same time.
 
 **This solution:** Run the VPN inside a lightweight container and expose
 it as SOCKS5 / HTTP proxies on `localhost`. You decide per-app whether
