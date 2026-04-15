@@ -15,10 +15,34 @@ to use the VPN. Everything else stays on your normal connection.
 > **TL;DR** — Run `hkuvpn`, type your 6-digit OTP, done.
 > SOCKS5 on `127.0.0.1:1080`, HTTP on `127.0.0.1:1088`.
 
+## Real Use at a Glance
+
+**Typical pain without this project:**
+
+1. Start Cisco AnyConnect to access HKU services.
+2. Need ChatGPT / Claude (Code) via your own proxy (for example Surge
+   on port `6152`).
+3. AnyConnect globally takes over network routing, so you disconnect HKU
+   VPN first, then switch back to your own proxy.
+4. Later you need HKU again, so you reconnect AnyConnect again.
+
+**With docker-vpn:**
+
+1. Keep your own proxy stack (for example Surge `127.0.0.1:6152`) as-is
+   for ChatGPT / Claude (Code).
+2. Run `hkuvpn` in Docker to expose local HKU proxies (`127.0.0.1:1080`
+   / `127.0.0.1:1088`).
+3. In Surge (or similar), route only HKU domains/services to
+   docker-vpn, keep AI tools and everything else on your normal/proxy
+   path.
+4. Result: HKU resources and ChatGPT/Claude can work at the same time,
+   no repeated VPN on/off switching.
+
 ---
 
 ## Table of Contents
 
+- [Real Use at a Glance](#real-use-at-a-glance)
 - [What You Need](#what-you-need)
 - [Setup (One-Time)](#setup-one-time)
   - [Step 1 — Install Docker](#step-1--install-docker)
@@ -443,20 +467,21 @@ hostnames as needed. Only route what actually requires an HKU IP.
 ## How It Works
 
 ```
-Your computer                         Docker container
-─────────────                         ────────────────
-                                     ┌──────────────────────────┐
- hkuvpn (shell fn)                   │  hku-connect.exp (PID 1) │
-   │                                 │    ├─ openconnect → VPN  │
-   ├─ loads ~/.vpn/hku.env           │    └─ sends Portal PIN   │
-   ├─ loads ~/.vpn/hku.pass          │       then waits for OTP │
-   ├─ fetches certificate pin        │                          │
-   └─ docker run ──────────────────► │  supervisord (daemon)    │
-                                     │    ├─ SOCKS5 on :1080    │
- Your apps ◄─── localhost:1080 ◄──── │    └─ HTTP   on :1088    │
-           ◄─── localhost:1088 ◄──── │                          │
-                                     │  tun0 ── VPN tunnel ───► │── HKU network
-                                     └──────────────────────────┘
+Your computer                                                     Docker container
+─────────────                                                     ────────────────
+                                                                  ┌──────────────────────────┐
+ hkuvpn (shell fn)                                                │  hku-connect.exp (PID 1) │
+   │                                                              │    ├─ openconnect → VPN  │
+   ├─ loads ~/.vpn/hku.env                                        │    └─ sends Portal PIN   │
+   ├─ loads ~/.vpn/hku.pass                                       │       then waits for OTP │
+   ├─ fetches certificate pin                                     │                          │
+   └─ docker run ────────────────────────────────────────────────► │  supervisord (daemon)    │
+                                                                  │    ├─ SOCKS5 on :1080    │
+ Surge (example local mixed-routing entry on :6152)              │    └─ HTTP   on :1088    │
+   ├─ HKU rules (hku.hk, hku.edu.hk, library systems) ───────────► localhost:1080 / :1088   │
+   └─ ChatGPT / Claude(Code) / other traffic ────────────────────► your normal proxy path    │
+                                                                  │  tun0 ── VPN tunnel ───► │── HKU network
+                                                                  └──────────────────────────┘
 ```
 
 - **openconnect** connects to HKU's Cisco AnyConnect VPN inside an
@@ -465,6 +490,9 @@ Your computer                         Docker container
   to you for the Microsoft Authenticator OTP.
 - **pproxy** (managed by supervisord) exposes the tunnel as SOCKS5 and
   HTTP proxies, mapped to `127.0.0.1` on your machine.
+- In real mixed setups, tools like **Surge** can keep their own local
+  entry (for example `127.0.0.1:6152`) for ChatGPT / Claude(Code), and
+  only forward HKU domains to docker-vpn (`127.0.0.1:1080` / `:1088`).
 - The expect script runs as PID 1 — pressing Ctrl+C stops the container
   and all child processes cleanly.
 
