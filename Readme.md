@@ -454,7 +454,7 @@ Your computer                         Docker container
    └─ docker run ──────────────────► │  supervisord (daemon)    │
                                      │    ├─ SOCKS5 on :1080    │
  Your apps ◄─── localhost:1080 ◄──── │    └─ HTTP   on :1088    │
-            ◄─── localhost:1088 ◄──── │                          │
+           ◄─── localhost:1088 ◄──── │                          │
                                      │  tun0 ── VPN tunnel ───► │── HKU network
                                      └──────────────────────────┘
 ```
