@@ -1,109 +1,341 @@
-# Docker-VPN (HKU edition)
+# Docker-VPN (HKU Edition)
 
-Connect to HKU VPN (`vpn2fa.hku.hk`) from a Docker container using
-openconnect, with automatic password entry and manual Microsoft
-Authenticator OTP input. The VPN tunnel is exposed as **SOCKS5** and
-**HTTP** proxies on localhost, enabling per-app split tunneling — route
-only HKU traffic (journals, library, internal services) through the VPN
-while keeping the rest of your network untouched. This is especially
-useful for users in mainland China who need to access both HKU resources
-and sites blocked by the GFW (Claude, ChatGPT, Google Scholar, GitHub
-Copilot, etc.) through separate routing paths.
+Connect to HKU's VPN from a Docker container — then use the tunnel as a
+**local proxy** so only the apps you choose go through HKU's network.
 
-> **TL;DR** — `hkuvpn` in your terminal, type the 6-digit OTP when
-> prompted, done. SOCKS5 on `127.0.0.1:1080`, HTTP on `127.0.0.1:1088`.
+**The problem:** HKU's official Cisco AnyConnect client routes *all* your
+traffic through the VPN. That means slower speeds, privacy trade-offs,
+and broken workflows — especially in mainland China where you need HKU
+resources *and* sites like Google, GitHub, and ChatGPT at the same time.
 
-## Quick start
+**This solution:** Run the VPN inside a lightweight container and expose
+it as SOCKS5 / HTTP proxies on `localhost`. You decide per-app whether
+to use the VPN. Everything else stays on your normal connection.
 
-**Prerequisites:** macOS with a Docker runtime — we recommend
-[Colima](https://github.com/abiosoft/colima) (`brew install colima docker`),
-an HKU account with VPN access, and Microsoft Authenticator set up for
-your HKU account. See [Platform support](#platform-support) for Linux /
-Windows.
+> **TL;DR** — Run `hkuvpn`, type your 6-digit OTP, done.
+> SOCKS5 on `127.0.0.1:1080`, HTTP on `127.0.0.1:1088`.
+
+---
+
+## Table of Contents
+
+- [What You Need](#what-you-need)
+- [Setup (One-Time)](#setup-one-time)
+  - [Step 1 — Install Docker](#step-1--install-docker)
+  - [Step 2 — Build the VPN Image](#step-2--build-the-vpn-image)
+  - [Step 3 — Create Your Config Files](#step-3--create-your-config-files)
+  - [Step 4 — Install the Launcher](#step-4--install-the-launcher)
+- [Daily Usage](#daily-usage)
+- [Using the Proxies](#using-the-proxies)
+  - [Quick Test](#quick-test)
+  - [Custom Ports](#custom-ports)
+  - [Browser](#browser)
+  - [Terminal / CLI](#terminal--cli)
+  - [Routing Through a Proxy Client](#routing-through-a-proxy-client)
+- [How It Works](#how-it-works)
+- [Troubleshooting](#troubleshooting)
+- [Security Notes](#security-notes)
+- [Credits & License](#credits--license)
+
+---
+
+## What You Need
+
+Before you start, make sure you have:
+
+| #  | Requirement | Why |
+|----|-------------|-----|
+| 1  | **An HKU account with VPN access** | The service connects to HKU's VPN endpoint |
+| 2  | **Microsoft Authenticator** on your phone, set up for your HKU account | You'll type a 6-digit one-time code each time you connect |
+| 3  | **Your HKU Portal PIN** (the static password you use to log in to HKU Portal — *not* the OTP) | The launcher sends it automatically so you only have to type the OTP |
+| 4  | **Docker** installed on your computer | The VPN runs inside a Docker container — see [Step 1](#step-1--install-docker) |
+| 5  | **A terminal** (Terminal.app, iTerm2, Windows Terminal, etc.) | You'll run a few commands to set things up and connect |
+
+> **New to Docker?** Docker lets you run a small, isolated Linux
+> environment ("container") on your computer. You don't need to know how
+> it works — just install it and the launcher script handles the rest.
+
+---
+
+## Setup (One-Time)
+
+You only need to do these steps once. After that, connecting is a single
+command.
+
+### Step 1 — Install Docker
+
+Pick your operating system:
+
+<details open>
+<summary><b>macOS</b></summary>
+
+We recommend **Colima** — a lightweight Docker runtime that runs in the
+background. Install it with [Homebrew](https://brew.sh):
 
 ```bash
-# 1. Clone and build
+brew install colima docker
+```
+
+Start it once to make sure it works:
+
+```bash
+colima start
+```
+
+> Don't have Homebrew? Install it first:
+> ```bash
+> /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+> ```
+
+> **Alternative:** [Docker Desktop for Mac](https://www.docker.com/products/docker-desktop/)
+> also works. If you use Docker Desktop, remove the Colima health-check
+> block from the launcher function (Step 4) — it's only needed for Colima.
+
+</details>
+
+<details>
+<summary><b>Linux (Ubuntu / Debian / Fedora / Arch)</b></summary>
+
+Install Docker Engine using your distro's package manager. For example,
+on Ubuntu / Debian:
+
+```bash
+sudo apt update
+sudo apt install docker.io
+sudo systemctl enable --now docker
+```
+
+Then add yourself to the `docker` group so you don't need `sudo` every
+time:
+
+```bash
+sudo usermod -aG docker $USER
+```
+
+**Log out and back in** (or run `newgrp docker`) for the group change to
+take effect.
+
+Verify it works:
+
+```bash
+docker run --rm hello-world
+```
+
+> See the [official Docker docs](https://docs.docker.com/engine/install/)
+> for other distros.
+
+</details>
+
+<details>
+<summary><b>Windows</b></summary>
+
+1. Install **[Docker Desktop](https://www.docker.com/products/docker-desktop/)**
+   and enable the **WSL 2 backend** during setup.
+2. Open **Windows Terminal** and launch a WSL2 distro (e.g. Ubuntu).
+3. Follow the rest of this guide inside that WSL2 terminal — all
+   commands work the same as on Linux.
+4. Proxies on `localhost:1080` / `localhost:1088` inside WSL2
+   automatically forward to the Windows host, so your Windows apps can
+   use them too.
+
+> **Note:** Windows support is community-tested. If you run into issues,
+> please [open an issue](https://github.com/rqhu1995/docker-vpn/issues).
+
+</details>
+
+### Step 2 — Build the VPN Image
+
+Clone this repository and build the Docker image:
+
+```bash
 git clone https://github.com/rqhu1995/docker-vpn.git ~/docker-vpn
-cd ~/docker-vpn && docker build -t local/vpn .
+cd ~/docker-vpn
+docker build -t local/vpn .
+```
 
-# 2. Create config (edit HKU_USER to your HKU email)
+This downloads a small Alpine Linux base image and installs the VPN
+tools inside it. It only needs internet access this one time.
+
+> **What's happening:** `docker build` reads the `Dockerfile` in this
+> repo and creates a local image called `local/vpn`. It installs
+> `openconnect` (the VPN client), `pproxy` (the proxy server), and a
+> few helper tools. The resulting image is ~80 MB.
+
+### Step 3 — Create Your Config Files
+
+Create a private directory for your VPN config:
+
+```bash
 mkdir -p ~/.vpn
-cp examples/hku.env.example ~/.vpn/hku.env
+```
 
-# 3. Save your HKU Portal PIN (the static password, NOT the OTP)
+**a) Copy and edit the config template:**
+
+```bash
+cp ~/docker-vpn/examples/hku.env.example ~/.vpn/hku.env
+```
+
+Open `~/.vpn/hku.env` in any text editor and change `youruid` to your
+actual HKU UID:
+
+```bash
+# Students: uid@connect.hku.hk
+# Staff:    uid@hku.hk
+HKU_USER=youruid@connect.hku.hk
+```
+
+Save and close the file. Leave the other settings at their defaults for
+now.
+
+**b) Save your Portal PIN:**
+
+```bash
 printf '%s' 'YOUR_PORTAL_PIN' > ~/.vpn/hku.pass
 chmod 600 ~/.vpn/hku.pass
+```
 
-# 4. Add the launcher to your shell
-cat examples/hkuvpn.zsh >> ~/.zshrc
+Replace `YOUR_PORTAL_PIN` with your actual HKU Portal password (the
+static one, **not** the 6-digit OTP).
+
+> **Why `printf` instead of `echo`?** `echo` adds a hidden newline
+> character at the end of the file, which would make your password
+> wrong. `printf '%s'` writes exactly what you give it.
+>
+> **Verify it's correct:** Run `wc -c ~/.vpn/hku.pass` — the number
+> should equal the length of your PIN (e.g. an 8-character PIN → `8`).
+
+### Step 4 — Install the Launcher
+
+The launcher is a shell function that handles Docker, certificates, and
+credentials for you. Add it to your shell profile:
+
+**For Zsh (default on macOS):**
+
+```bash
+cat ~/docker-vpn/examples/hkuvpn.zsh >> ~/.zshrc
 source ~/.zshrc
+```
 
-# 5. Connect!
+**For Bash (default on most Linux distros):**
+
+```bash
+cat ~/docker-vpn/examples/hkuvpn.zsh >> ~/.bashrc
+source ~/.bashrc
+```
+
+> **Not sure which shell you use?** Run `echo $SHELL`. If the output
+> ends in `zsh`, use `.zshrc`; if it ends in `bash`, use `.bashrc`.
+
+> **Linux users:** The launcher includes a Colima health-check (lines
+> 15-18 in `hkuvpn.zsh`) designed for macOS. On Linux, Docker runs
+> natively so this block is harmless — it simply gets skipped when
+> `docker info` succeeds. No changes needed.
+
+---
+
+## Daily Usage
+
+After the one-time setup, connecting is just:
+
+```bash
 hkuvpn
 ```
 
-When you see the `Response:` prompt, open Microsoft Authenticator, type
-the 6-digit code, press Enter. Press **Ctrl+C** to disconnect.
+1. The launcher builds the connection automatically.
+2. When you see `Response:`, open **Microsoft Authenticator** on your
+   phone, find the 6-digit code for HKU, type it, and press **Enter**.
+3. You're connected! The terminal stays open — this is normal.
+4. Press **Ctrl+C** to disconnect when you're done.
 
-> **Note:** `printf '%s'` (not `echo`) avoids a trailing newline. Verify
-> with `wc -c ~/.vpn/hku.pass` — should equal your PIN length exactly.
+### Choosing an Endpoint
 
-## Usage
+HKU provides two VPN endpoints. The launcher picks one automatically,
+or you can choose:
 
 ```bash
-hkuvpn          # use default endpoint from ~/.vpn/hku.env
-hkuvpn cn       # force mainland China endpoint (faster from CN)
-hkuvpn hk       # force Hong Kong endpoint
+hkuvpn          # use the default from ~/.vpn/hku.env
+hkuvpn cn       # mainland China endpoint (faster from CN)
+hkuvpn hk       # Hong Kong endpoint (better outside CN)
 ```
 
-### Endpoints
+| Endpoint | Host | Best for |
+|----------|------|----------|
+| `cn` | `121.37.195.197` | Users in mainland China |
+| `hk` | `vpn2fa.hku.hk` | Users in Hong Kong / overseas |
 
-HKU provides two VPN endpoints with identical credentials but different
-network paths:
+The first time you connect to an endpoint, the launcher fetches and
+caches its certificate fingerprint in `~/.vpn/pin-{cn,hk}.cache`. This
+is automatic.
 
-| Endpoint | Host             | Best for                      |
-|----------|------------------|-------------------------------|
-| `cn`     | `121.37.195.197` | Users in mainland China       |
-| `hk`     | `vpn2fa.hku.hk`  | Users in Hong Kong / overseas |
+---
 
-The `cn` endpoint uses a self-signed certificate, `hk` uses a
-DigiCert-signed one. Both are validated via public key pinning — the
-launcher auto-fetches and caches the fingerprint on first connect
-(`~/.vpn/pin-{cn,hk}.cache`). If HKU rotates a certificate (rare),
-delete the cache file and reconnect.
+## Using the Proxies
 
-## Using the proxies
+Once connected, two proxies are available on your machine:
 
-By default the proxies are exposed on:
+| Protocol | Address | Default Port |
+|----------|---------|-------------|
+| SOCKS5 | `127.0.0.1` | `1080` |
+| HTTP | `127.0.0.1` | `1088` |
 
-- **SOCKS5**: `127.0.0.1:1080`
-- **HTTP**: `127.0.0.1:1088`
+Any app you point at these proxies will route its traffic through HKU's
+VPN. Everything else uses your normal internet.
 
-Quick test:
+### Quick Test
+
+Open a **new** terminal window (keep the VPN terminal running) and try:
 
 ```bash
 curl -x socks5h://127.0.0.1:1080 -I https://www.hku.hk
 curl -x http://127.0.0.1:1088    -I https://www.hku.hk
 ```
 
-### Custom ports
+If you see `HTTP/... 200`, the VPN is working.
 
-If 1080/1088 conflict with an existing proxy (Surge, Clash, etc.), set
-`HKU_SOCKS_PORT` / `HKU_HTTP_PORT` in `~/.vpn/hku.env`, or override
-per-invocation:
+### Custom Ports
+
+If ports 1080 or 1088 are already taken (e.g. by Surge, Clash, etc.),
+change them in `~/.vpn/hku.env`:
+
+```bash
+HKU_SOCKS_PORT=11080
+HKU_HTTP_PORT=11088
+```
+
+Or override per-session:
 
 ```bash
 HKU_SOCKS_PORT=11080 HKU_HTTP_PORT=11088 hkuvpn
 ```
 
-The container always uses 1080/1088 internally — these only change the
-host-side mapping, no rebuild needed.
+### Browser
 
-### Routing through an existing proxy client
+Set your browser's proxy to SOCKS5 `127.0.0.1:1080`. For per-site
+rules (recommended), use an extension like
+[FoxyProxy](https://getfoxyproxy.org/) or
+[SwitchyOmega](https://github.com/nicehash/nicehash-js-web-ext) to
+only route `*.hku.hk` through the proxy.
 
-If you already run Surge, Clash, V2RayN, etc., the cleanest setup is to
-add docker-vpn as an upstream proxy and write a rule that routes only
-HKU traffic through it.
+### Terminal / CLI
+
+Most command-line tools respect the `ALL_PROXY` environment variable:
+
+```bash
+export ALL_PROXY=socks5h://127.0.0.1:1080
+```
+
+Add this to your shell profile to make it persistent, or prefix
+individual commands:
+
+```bash
+ALL_PROXY=socks5h://127.0.0.1:1080 curl https://lib.hku.hk
+```
+
+### Routing Through a Proxy Client
+
+If you already run a proxy client (Surge, Clash, V2RayN, etc.), the
+cleanest setup is to add docker-vpn as an **upstream proxy** and write
+rules to route only HKU traffic through it.
 
 <details>
 <summary><b>Surge (macOS / iOS)</b></summary>
@@ -116,11 +348,10 @@ HKU-HTTP   = http, 127.0.0.1, 1088
 [Rule]
 DOMAIN-SUFFIX,hku.hk,HKU-SOCKS5
 DOMAIN-SUFFIX,hku.edu.hk,HKU-SOCKS5
-# Add more HKU-specific suffixes as needed
 ```
 
-SOCKS5 is generally preferred (UDP-capable); HTTP is a fallback for apps
-that don't speak SOCKS.
+SOCKS5 is preferred (UDP-capable); HTTP is a fallback for apps that
+don't speak SOCKS.
 
 </details>
 
@@ -189,8 +420,7 @@ Add to your Xray JSON config:
 ```
 
 Apply via "Settings → Routing → Custom routing rules" or a custom config
-profile. If editing JSON feels painful, Clash Verge Rev has a friendlier
-rule editor with the same capabilities.
+profile.
 
 </details>
 
@@ -200,97 +430,127 @@ rule editor with the same capabilities.
 The pattern is the same in any tool that supports upstream SOCKS5/HTTP
 proxies + rule-based routing: declare `127.0.0.1:1080` as a proxy,
 write a domain rule for `hku.hk`, point the rule at it. Quantumult X,
-Loon, sing-box, Shadowrocket etc. all support this.
+Loon, sing-box, Shadowrocket, etc. all support this.
 
 </details>
 
-**What domains to route:** `hku.hk` and `hku.edu.hk` cover most cases
-(portal, internal services, library). Add specific journal proxy
-hostnames as needed. Don't route everything — only hosts that require an
-HKU IP.
+**Which domains to route:** `hku.hk` and `hku.edu.hk` cover most
+cases (portal, internal services, library). Add specific journal proxy
+hostnames as needed. Only route what actually requires an HKU IP.
 
-### Browser
+---
 
-Configure SOCKS5 `127.0.0.1:1080` in your browser, or use an extension
-like FoxyProxy / SwitchyOmega for per-site rules.
+## How It Works
 
-### Terminal apps
-
-Most CLI tools respect `ALL_PROXY` / `HTTPS_PROXY`:
-```bash
-export ALL_PROXY=socks5h://127.0.0.1:1080
+```
+Your computer                         Docker container
+─────────────                         ────────────────
+                                     ┌──────────────────────────┐
+ hkuvpn (shell fn)                   │  hku-connect.exp (PID 1) │
+   │                                 │    ├─ openconnect → VPN  │
+   ├─ loads ~/.vpn/hku.env           │    └─ sends Portal PIN   │
+   ├─ loads ~/.vpn/hku.pass          │       then waits for OTP │
+   ├─ fetches certificate pin        │                          │
+   └─ docker run ──────────────────► │  supervisord (daemon)    │
+                                     │    ├─ SOCKS5 on :1080    │
+ Your apps ◄─── localhost:1080 ◄──── │    └─ HTTP   on :1088    │
+            ◄─── localhost:1088 ◄──── │                          │
+                                     │  tun0 ── VPN tunnel ───► │── HKU network
+                                     └──────────────────────────┘
 ```
 
-## Why not Cisco AnyConnect?
-
-HKU's official AnyConnect client routes **all** traffic through the VPN
-with no split-tunneling. This forces your entire internet connection
-through HKU's network — slower speeds, privacy concerns, and broken
-workflows when you need both HKU intranet access and direct connections
-to other services simultaneously.
-
-This project runs openconnect inside a container and exposes the tunnel
-as localhost proxies, so you decide per-app whether to use the VPN.
-
-## How it works
-
-- **openconnect** connects to HKU's Cisco AnyConnect-compatible VPN
-  endpoint inside an Alpine container
-- **expect** automates the static password prompt, then `interact` hands
-  the terminal back for you to type the Microsoft Authenticator OTP
+- **openconnect** connects to HKU's Cisco AnyConnect VPN inside an
+  Alpine Linux container.
+- **expect** automates the password prompt, then hands the terminal back
+  to you for the Microsoft Authenticator OTP.
 - **pproxy** (managed by supervisord) exposes the tunnel as SOCKS5 and
-  HTTP proxies on `0.0.0.0:1080` / `0.0.0.0:1088` inside the container,
-  mapped to `127.0.0.1` on the host
-- The expect script is PID 1 — Ctrl+C kills it, which stops the
-  container and all child processes cleanly
+  HTTP proxies, mapped to `127.0.0.1` on your machine.
+- The expect script runs as PID 1 — pressing Ctrl+C stops the container
+  and all child processes cleanly.
 
-## Platform support
-
-**macOS** is the primary tested platform (Apple Silicon +
-[Colima](https://github.com/abiosoft/colima), recommended).
-
-**Linux** works without modification — just remove the `colima start`
-block from the `hkuvpn` function (your Docker daemon is already
-running).
-
-**Windows** should work via Docker Desktop + WSL2. The container is a
-standard Linux image; `--cap-add NET_ADMIN` and `--device /dev/net/tun`
-work through WSL2. Run the `hkuvpn` function from a WSL2 distro (e.g.
-Ubuntu) — `localhost:1080` forwards to the Windows host out of the box.
-**Not tested by the author** — please open an issue or PR with your
-findings.
+---
 
 ## Troubleshooting
 
-**`Failed to fetch certificate from $host`**
-Your network can't reach that endpoint. Try the other one (`hkuvpn cn`
-vs `hkuvpn hk`), or manually write the pin to
-`~/.vpn/pin-{cn,hk}.cache` in the format `pin-sha256:BASE64STRING`.
+### "Failed to fetch certificate from ..."
 
-**`Login failed` after entering OTP**
-The OTP expired (they roll every 30 seconds). Wait for a fresh code.
+Your network can't reach that VPN endpoint. Try the other one:
 
-**`Colima not ready` loops**
-`colima stop && colima start`. If stuck, `colima delete` and recreate.
+```bash
+hkuvpn cn    # if 'hk' failed
+hkuvpn hk    # if 'cn' failed
+```
 
-**Port 1080 / 1088 already in use**
-Find what's using it (`lsof -i :1080`), or set `HKU_SOCKS_PORT` /
-`HKU_HTTP_PORT` in `~/.vpn/hku.env`.
+Or manually write the pin to `~/.vpn/pin-{cn,hk}.cache` in the format
+`pin-sha256:BASE64STRING`.
 
-## Security notes
+### "Login failed" after entering OTP
 
-- `~/.vpn/hku.pass` stores your Portal PIN in plaintext. Use FileVault.
-- The container needs `NET_ADMIN` and `/dev/net/tun` for the tun
-  interface. Proxies bind to `127.0.0.1` only — not exposed to LAN.
-- OTP entry is intentionally manual. That's the point of MFA.
+The OTP expired — they rotate every 30 seconds. Wait for a fresh code
+in Microsoft Authenticator and try again.
 
-## Credits
+### Port 1080 or 1088 already in use
+
+Find what's using it:
+
+```bash
+lsof -i :1080
+```
+
+Then either stop that process, or set custom ports (see
+[Custom Ports](#custom-ports)).
+
+### "Colima not ready" keeps looping (macOS)
+
+```bash
+colima stop
+colima start
+```
+
+If that doesn't help:
+
+```bash
+colima delete
+colima start --cpu 2 --memory 2 --disk 20 --vm-type vz --mount-type virtiofs
+```
+
+### Container starts but proxy doesn't work
+
+Make sure you're testing in a **different** terminal window — the VPN
+terminal must stay open. Then verify the container is running:
+
+```bash
+docker ps | grep vpn-hku
+```
+
+### Certificate changed (rare)
+
+If HKU rotates their VPN certificate, delete the cache and reconnect:
+
+```bash
+rm ~/.vpn/pin-*.cache
+hkuvpn
+```
+
+---
+
+## Security Notes
+
+- `~/.vpn/hku.pass` stores your Portal PIN in **plaintext**. Enable
+  full-disk encryption (FileVault on macOS, LUKS on Linux, BitLocker on
+  Windows) to protect it at rest.
+- The container requires `NET_ADMIN` capability and `/dev/net/tun` for
+  the VPN tunnel. Proxies bind to `127.0.0.1` only — they are **not**
+  exposed to your LAN.
+- OTP entry is intentionally manual — that's the point of MFA.
+
+---
+
+## Credits & License
 
 Forked from [ethack/docker-vpn](https://github.com/ethack/docker-vpn).
 This edition strips it down to HKU-specific use, adds `expect`-based
-MFA handling, replaces the ssh-based SOCKS proxy with pproxy, and
+MFA handling, replaces the SSH-based SOCKS proxy with pproxy, and
 removes the embedded sshd.
-
-## License
 
 Inherits the upstream license. See LICENSE.
