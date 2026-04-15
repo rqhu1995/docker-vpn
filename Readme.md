@@ -20,7 +20,7 @@ to use the VPN. Everything else stays on your normal connection.
 **Typical pain without this project:**
 
 1. Start Cisco AnyConnect to access HKU services.
-2. Need ChatGPT / Claude (Code) via your own proxy (for example Surge
+2. Need ChatGPT / Claude (Code) via your own proxy (for example, Surge
    on port `6152`).
 3. AnyConnect globally takes over network routing, so you disconnect HKU
    VPN first, then switch back to your own proxy.
@@ -33,7 +33,7 @@ to use the VPN. Everything else stays on your normal connection.
 2. Run `hkuvpn` in Docker to expose local HKU proxies (`127.0.0.1:1080`
    / `127.0.0.1:1088`).
 3. In Surge (or similar), route only HKU domains/services to
-   docker-vpn, keep AI tools and everything else on your normal/proxy
+   docker-vpn, keep AI tools and everything else on your existing proxy
    path.
 4. Result: HKU resources and ChatGPT/Claude can work at the same time,
    no repeated VPN on/off switching.
