@@ -475,11 +475,11 @@ Your computer                                                     Docker contain
    ├─ loads ~/.vpn/hku.env                                        │    └─ sends Portal PIN   │
    ├─ loads ~/.vpn/hku.pass                                       │       then waits for OTP │
    ├─ fetches certificate pin                                     │                          │
-   └─ docker run ────────────────────────────────────────────────► │  supervisord (daemon)    │
+   └─ docker run ───────────────────────────────────────────────► │  supervisord (daemon)    │
                                                                   │    ├─ SOCKS5 on :1080    │
- Surge (example local mixed-routing entry on :6152)              │    └─ HTTP   on :1088    │
-   ├─ HKU rules (hku.hk, hku.edu.hk, library systems) ───────────► localhost:1080 / :1088   │
-   └─ ChatGPT / Claude(Code) / other traffic ────────────────────► your normal proxy path    │
+ Surge (example local mixed-routing entry on :6152)               │    └─ HTTP   on :1088    │
+   ├─ HKU rules (hku.hk, hku.edu.hk, library systems) ───────────►│ localhost:1080 / :1088   │
+   └─ ChatGPT / Claude(Code) / other traffic ────────────────────►│ your normal proxy path   │
                                                                   │  tun0 ── VPN tunnel ───► │── HKU network
                                                                   └──────────────────────────┘
 ```
