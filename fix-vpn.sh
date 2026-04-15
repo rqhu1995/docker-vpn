@@ -62,7 +62,7 @@ EOF
         --env "AUTHORIZED_KEYS=$authorizedKeys" \
         --interactive --tty \
         --entrypoint /bin/sh \
-        ethack/vpn -c "echo 'VPN Container Shell'; echo '==================='; echo '1. First run: /docker-entrypoint.sh'; echo '2. Then run your VPN command, for example:'; echo '   openconnect https://your-vpn-server.com --user your-username'; echo ''; echo 'Once connected, you can access the VPN from your host via:'; echo '- SSH: ssh $vpnName'; echo '- SOCKS proxy: localhost:$socksPort'; echo '- HTTP proxy: localhost:$httpProxyPort'; echo ''; exec /bin/sh"
+        local/vpn -c "echo 'VPN Container Shell'; echo '==================='; echo '1. First run: /docker-entrypoint.sh'; echo '2. Then run your VPN command, for example:'; echo '   openconnect https://your-vpn-server.com --user your-username'; echo ''; echo 'Once connected, you can access the VPN from your host via:'; echo '- SSH: ssh $vpnName'; echo '- SOCKS proxy: localhost:$socksPort'; echo '- HTTP proxy: localhost:$httpProxyPort'; echo ''; exec /bin/sh"
 }
 
 echo "Added vpn_shell function. Run 'vpn_shell myconnection' to start."
