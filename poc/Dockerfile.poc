@@ -1,0 +1,5 @@
+FROM local/vpn
+RUN apk add --no-cache expect
+COPY hku-connect.exp /usr/local/bin/hku-connect
+RUN chmod +x /usr/local/bin/hku-connect
+ENTRYPOINT ["/usr/local/bin/hku-connect"]

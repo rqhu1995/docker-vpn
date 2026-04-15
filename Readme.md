@@ -1,130 +1,171 @@
-## About
+# docker-vpn (HKU edition)
 
-docker-vpn is an alternative to installing VPN software on your host system and routing all your traffic through a VPN. This is useful if you want to have control over which traffic is sent through the VPN. Sending all your traffic through a VPN is a privacy concern and limits your internet connection to the speed of your VPN.
+A lightweight Docker-based HKU VPN client that exposes the connection
+as SOCKS5 and HTTP proxies on localhost, so you can route specific apps
+through HKU VPN instead of forcing all system traffic through it.
 
-The [`ethack/vpn`](https://hub.docker.com/r/ethack/vpn) Docker image and accompanying shell script provide the following:
-- OpenVPN client
-- Cisco AnyConnect or Juniper Pulse client
-- SSH server (default port 2222) with public key authentication enabled and configured
-- SOCKS 5 server (default port 1080)
-- HTTP Proxy server (default port 1088)
-- SSH config file entry created for each VPN connection
+## Why not Cisco AnyConnect?
 
-## Install
+HKU's official AnyConnect client routes all traffic through the VPN with
+no split-tunneling. This breaks workflows that need both HKU intranet
+access (e.g. journals, internal services) and a separate proxy for other
+sites. Running openconnect inside a container and exposing it as
+localhost proxies (SOCKS5 on 1080, HTTP on 1088 by default) lets you
+decide per-app whether to use the VPN — your browser, terminal, IDE,
+etc. each choose independently.
 
-- [Install Docker](https://docs.docker.com/install/) using the instructions or use `curl -fsSL https://get.docker.com -o get-docker.sh | sh` if you have a supported linux distro and like to live dangerously.
-- Source `vpn.sh` in your `.bashrc` file or current shell. E.g. `source vpn.sh`
+## What's inside
 
-## Usage
+- `openconnect` running in an Alpine container, authenticating against
+  HKU's two-factor VPN
+- `expect` automating the static password step, then handing control
+  back to your terminal so you can enter the Microsoft Authenticator OTP
+- `pproxy` (managed by supervisord) exposing the tunnel as SOCKS5 and
+  HTTP proxies bound to 127.0.0.1
 
-```
-# openvpn NAME [OpenVPN args...]
-# e.g.
-openvpn foo https://vpn.example.com
+## Prerequisites
 
-# openconnect NAME [OpenConnect args...]
-# e.g.
-openconnect bar https://vpn.example.com
-```
+- macOS (tested on Apple Silicon)
+- [Colima](https://github.com/abiosoft/colima) (`brew install colima docker`)
+  or any other Docker-compatible runtime
+- An HKU account with VPN access
+- Microsoft Authenticator set up for your HKU account
 
-The first argument is an arbitrary name that you give your VPN connection. This is used in the Docker container names and the SSH config file. The rest of the arguments are passed to the VPN client. Each example above will connect to a VPN located at vpn.example.com.
+## Setup (5 steps)
 
-Once connected, you will see a message telling you which ports are available and the name of the ssh config profile.
+1. **Clone and build**
+   ```bash
+   git clone https://github.com/rqhu1995/docker-vpn.git ~/docker-vpn
+   cd ~/docker-vpn
+   docker build -t local/vpn .
+   ```
 
-```
-============================================
-SSH Port: 2222
-SOCKS Proxy Port: 1080
-HTTP Proxy Port: 1088
-Use: ssh foo
-============================================
-```
+2. **Create your config file**
+   ```bash
+   mkdir -p ~/.vpn
+   cp ~/docker-vpn/examples/hku.env.example ~/.vpn/hku.env
+   # Edit ~/.vpn/hku.env and fill in HKU_USER
+   ```
 
-I recommend using a proxy switcher browser extension like one of the following. This allows you to quickly switch proxies on/off or tunnel certain websites through a proxy while letting all other traffic go through your default gateway.
-* Proxy SwitchyOmega [[source]](https://github.com/FelisCatus/SwitchyOmega) [[Chrome]](https://chrome.google.com/webstore/detail/proxy-switchyomega/padekgcemlokbadohgkifijomclgjgif) [[Firefox]](https://addons.mozilla.org/en-US/firefox/addon/switchyomega/)
-* FoxyProxy Standard [[source]](https://github.com/foxyproxy/firefox-extension) [[Firefox]](https://addons.mozilla.org/en-US/firefox/addon/foxyproxy-standard/)
+3. **Create your password file** (your HKU Portal PIN, the static one)
+   ```bash
+   printf '%s' 'YOUR_PORTAL_PIN' > ~/.vpn/hku.pass
+   chmod 600 ~/.vpn/hku.pass
+   ```
+   Note `printf '%s'` (not `echo`) — you do **not** want a trailing newline.
+   Verify with `wc -c ~/.vpn/hku.pass` (should equal your PIN length exactly).
 
-### OpenVPN Config File
+4. **Add the launcher function to your shell**
+   ```bash
+   cat ~/docker-vpn/examples/hkuvpn.zsh >> ~/.zshrc
+   source ~/.zshrc
+   ```
+   (Bash users: same file works, append to `~/.bashrc` instead.)
 
-```
-openvpn foo
-```
+5. **Connect**
+   ```bash
+   hkuvpn          # use default endpoint from ~/.vpn/hku.env
+   hkuvpn cn       # force mainland China endpoint (faster from CN)
+   hkuvpn hk       # force Hong Kong endpoint
+   ```
+   When prompted with `Response:`, open Microsoft Authenticator on your
+   phone, get the current 6-digit OTP, type it, and press Enter.
 
-To connect to the `foo` VPN put your config file at `~/.vpn/foo.ovpn` and then you can run `openvpn foo` to automatically use the corresponding config file.
+   Press Ctrl+C to disconnect.
 
-You can optionally put your credentials in `~/.vpn/foo.creds`. The username goes on the first line and the password on the second line. This gives up some security for the convenience of not having to enter your username and password. You will still be prompted for your 2FA code if your VPN endpoint requires it. You can run `chmod 600 ~/.vpn/foo.creds` to ensure only the file owner can read it.
+## Using the proxies
 
-### OpenConnect Profile
+By default the proxies are exposed on:
 
-OpenConnect offers an additional interactive command `openconnect_new_profile` which will guide you through a creation of a configuration profile. Once created, the profile is saved in `~/.vpn/NAME.profile` and `~/.vpn/NAME.secret`. To connect using a profile you can simply use `openconnect NAME` and the VPN connection will be established without any interaction. Currently, the following options are supported:
+- **SOCKS5**: `127.0.0.1:1080`
+- **HTTP**: `127.0.0.1:1088`
 
-- Hostname & optional port
-- Username authentication
-  - with password
-  - without password
-  - with password & external 2-factor authentication
-- Connection group
+If you already have a local proxy (Surge, Clash, etc.) on those ports,
+set `HKU_SOCKS_PORT` and/or `HKU_HTTP_PORT` in `~/.vpn/hku.env` to pick
+different host-side ports. You can also override them per-invocation:
 
-If you need custom configs for the openconnect client, you can create a file called `~/.vpn/foo.config` where you can 
-use the wide range of configuration available at the [openconnect documentation](https://www.infradead.org/openconnect/manual.html).
-The file would be mounted inside the container and passed to the CLI with `--config` option.
-
-## Customizing
-
-You can customize options by setting the following environment variables. The defaults are shown below.
-
-* `BIND_INTERFACE`: 127.0.0.1
-* `SSH_PORT`: 2222
-* `SOCKS_PORT`: 1080
-* `HTTP_PROXY_PORT`: 1088
-* `AUTHORIZED_KEYS`: Any keys allowed to SSH as the current user to the current machine, any keys configured in `ssh-agent`, and any keys found in `~/.ssh/*.pub`.
-
-### Custom hosts
-
-In order to have custom hostname resolution done inside the container, you can add a `~/.vpn/NAME.hosts`, `NAME` being
-the profile config for either openconnect or openvpn. The format of the files follows the same standard as your 
-/etc/hosts file:
-
-```
-my-custom-hostname  1.1.1.1
-```
-
-The hosts will then be added one by one to the docker command args, which would then edit the `/etc/hosts` file inside
-the container. See docker [--add-host option](https://docs.docker.com/reference/cli/docker/container/run/#add-host) for
-more information.
-
-### Custom ENV
-
-You can add a custom env that is then passed to the docker cli using the file `~/.vpn/NAME.env`, `NAME` being
-the profile config for either openconnect or openvpn. See 
-[--env-file option](https://docs.docker.com/compose/environment-variables/set-environment-variables/#substitute-with---env-file) 
-for more information.
-
-### Custom mounts
-
-To mount custom files or folders on the container, add a file `~/.vpn/NAME.mounts`, `NAME` being the profile for either
-openconnect or openvpn. The file follows the same format as the hosts file, where the first element is the local file,
-and the second is the remote file:
-
-```
-/local/file/to/be/mounted   /container/mount/point
+```bash
+HKU_SOCKS_PORT=11080 HKU_HTTP_PORT=11088 hkuvpn
 ```
 
-Please note that **neither of the file paths can contain spaces.**
+The container internally always uses 1080 and 1088 — these settings only
+change what your host sees, so the image doesn't need to be rebuilt.
 
-### Advanced Forwarding
+Quick test (replace `1080` / `1088` with your custom ports if you set them):
 
-docker-vpn provides all the power of an OpenSSH server. For example:
+```bash
+curl -x socks5h://127.0.0.1:1080 -I https://www.hku.hk
+curl -x http://127.0.0.1:1088    -I https://www.hku.hk
+```
 
-* Dynamic port forwarding (SOCKS proxy) `ssh -D 1080 foo` - Starts a socks5 proxy on port 1080. Connections using this proxy will be tunneled through SSH into the container and then tunneled to the `foo` network through the VPN client.
-* Local port forwarding `ssh -L 8080:private.foo.com:80 foo` - Forwards port 80 on private.foo.com so that you can access it from localhost:8080.
-* Jump hosts `ssh -J foo user@private.foo.com` - Allows connecting via SSH to a remote server private.foo.com that is not directly accessible but is accessible by using the docker-vpn `foo` as a jump host. (Requires OpenSSH 7.3)
-* TUN/TAP support - SSH has [builtin tunneling support](https://wiki.archlinux.org/index.php/VPN_over_SSH#OpenSSH's_built_in_tunneling). This is similar to just connecting directly with OpenVPN or OpenConnect software, but gives you the power (and responsibility) to configure your own routing.
+### Browser
 
-## Limitations
-- If you have multiple VPNs you want to connect to at once, you have to choose ports that do not conflict.
-- VPN configurations can be wildly different. I created these to make my specific use case easier. Other configurations may require passing in your own command line options and adding your own volume mounts.
+Configure SOCKS5 `127.0.0.1:1080` in your browser, or use an extension
+like FoxyProxy / SwitchyOmega for per-site rules.
+
+### Terminal apps
+
+Most CLI tools respect `ALL_PROXY` / `HTTPS_PROXY`:
+```bash
+export ALL_PROXY=socks5h://127.0.0.1:1080
+```
+
+## Endpoints
+
+HKU provides two VPN endpoints. They have identical credentials but
+different network paths:
+
+| Endpoint | Host                  | Best for                       |
+|----------|-----------------------|--------------------------------|
+| `cn`     | `121.37.195.197`      | Users in mainland China        |
+| `hk`     | `vpn2fa.hku.hk`       | Users in Hong Kong / overseas  |
+
+The `cn` endpoint uses a self-signed certificate (validated via pinning),
+the `hk` endpoint uses a DigiCert-signed certificate. The launcher
+handles both transparently — on first connect to each endpoint, it
+fetches the certificate's public key fingerprint via `openssl` and
+caches it to `~/.vpn/pin-{cn,hk}.cache`.
+
+If HKU rotates a certificate (rare), delete the corresponding cache
+file and reconnect.
+
+## Troubleshooting
+
+**`Failed to fetch certificate from $host`**
+Your current network can't reach that endpoint. Try the other one
+(`hkuvpn cn` vs `hkuvpn hk`), or manually obtain the pin and write it
+to `~/.vpn/pin-{cn,hk}.cache` in the format `pin-sha256:BASE64STRING`.
+
+**`Login failed` after entering OTP**
+The OTP expired (they roll every 30 seconds). Wait for a fresh code
+and try again.
+
+**`Colima not ready` loops or hangs**
+`colima stop && colima start`. If that doesn't help, `colima delete`
+and recreate.
+
+**Port 1080 / 1088 already in use**
+Another process is bound there. Either stop it (find with
+`lsof -i :1080`) or set `HKU_SOCKS_PORT` / `HKU_HTTP_PORT` in
+`~/.vpn/hku.env` to use different ports — see "Using the proxies" above.
+
+## Security notes
+
+- `~/.vpn/hku.pass` stores your Portal PIN in plaintext. Use FileVault.
+- The container runs with `--cap-add NET_ADMIN` and `--device /dev/net/tun`
+  because openconnect needs to manage a tun interface. The proxies are
+  bound to `127.0.0.1` only, not exposed to your LAN.
+- OTP entry is intentionally manual — that's the whole point of MFA and
+  cannot be automated without defeating the security guarantee.
 
 ## Credits
-- https://github.com/Praqma/alpine-sshd
-- https://github.com/vimagick/dockerfiles/blob/master/openconnect/Dockerfile
+
+Originally forked from [ethack/docker-vpn](https://github.com/ethack/docker-vpn),
+a general-purpose VPN-in-a-container tool. This fork strips it down to
+HKU-specific use, adds `expect`-based MFA handling, switches the SOCKS
+proxy from ssh-based to pproxy-based, and removes the embedded sshd.
+See git history for the full diff.
+
+## License
+
+Inherits the upstream license. See LICENSE.

@@ -1,0 +1,15 @@
+#!/usr/bin/expect -f
+set timeout -1
+set password $env(HKU_PASSWORD)
+
+spawn openconnect 121.37.195.197 \
+    --user=runqiuhu@connect.hku.hk \
+    --useragent=AnyConnect \
+    --servercert pin-sha256:lsVt/9wLdsGxKYDlCY2t3IY+Bu/FneociBtOd5UJEVo= \
+    --no-external-auth
+
+expect "Password:"
+send "$password\r"
+
+expect "Response:"
+interact

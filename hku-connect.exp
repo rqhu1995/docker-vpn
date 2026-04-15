@@ -1,0 +1,31 @@
+#!/usr/bin/expect -f
+
+set timeout -1
+
+foreach var {HKU_PASSWORD OC_USER OC_HOST OC_SERVERCERT} {
+    if {![info exists env($var)]} {
+        puts stderr "ERROR: environment variable $var is not set"
+        exit 1
+    }
+}
+
+set password $env(HKU_PASSWORD)
+set user $env(OC_USER)
+set host $env(OC_HOST)
+set servercert $env(OC_SERVERCERT)
+
+# Start supervisord in background (manages pproxy: SOCKS:1080 / HTTP:1088)
+exec /usr/bin/supervisord --configuration=/etc/supervisord.conf --logfile=/dev/null >/dev/null 2>/dev/null &
+
+# Foreground: spawn openconnect with credentials from env
+spawn openconnect $host \
+    --user=$user \
+    --useragent=AnyConnect \
+    --servercert $servercert \
+    --no-external-auth
+
+expect "Password:"
+send "$password\r"
+
+expect "Response:"
+interact

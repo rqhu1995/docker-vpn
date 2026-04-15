@@ -1,4 +1,8 @@
-docker-compose.yml
-.env
-ignore/
-.idea/
+# Local user data (should never be in this repo, listed defensively)
+*.pass
+*.cache
+.vpn/
+
+# OS / editor
+.DS_Store
+*.swp
