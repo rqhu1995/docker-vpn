@@ -181,79 +181,64 @@ command.</p>
 
 <details open="">
 <summary><b>macOS</b></summary>
-
-We recommend **Colima** — a lightweight Docker runtime that runs in the
-background. Install it with [Homebrew](https://brew.sh):
-
-```bash
-brew install colima docker
-```
-
-Start it once to make sure it works:
-
-```bash
-colima start
-```
-
-&gt; Don't have Homebrew? Install it first:
-&gt; ```bash
-&gt; /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-&gt; ```
-
-&gt; **Alternative:** [Docker Desktop for Mac](https://www.docker.com/products/docker-desktop/)
-&gt; also works. If you use Docker Desktop, remove the Colima health-check
-&gt; block from the launcher function (Step 4) — it's only needed for Colima.
-
+<p>We recommend <strong>Colima</strong> — a lightweight Docker runtime that runs in the
+background. Install it with <a href="https://brew.sh">Homebrew</a>:</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>brew install colima docker
+</code></pre></div></div>
+<p>Start it once to make sure it works:</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>colima start
+</code></pre></div></div>
+<blockquote>
+  <p>Don't have Homebrew? Install it first:</p>
+  <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+</code></pre></div></div>
+</blockquote>
+<blockquote>
+  <p><strong>Alternative:</strong> <a href="https://www.docker.com/products/docker-desktop/">Docker Desktop for Mac</a>
+also works. If you use Docker Desktop, remove the Colima health-check
+block from the launcher function (Step 4) — it's only needed for Colima.</p>
+</blockquote>
 </details>
 
 <details>
 <summary><b>Linux (Ubuntu / Debian / Fedora / Arch)</b></summary>
-
-Install Docker Engine using your distro's package manager. For example,
-on Ubuntu / Debian:
-
-```bash
-sudo apt update
+<p>Install Docker Engine using your distro's package manager. For example,
+on Ubuntu / Debian:</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>sudo apt update
 sudo apt install docker.io
 sudo systemctl enable --now docker
-```
-
-Then add yourself to the `docker` group so you don't need `sudo` every
-time:
-
-```bash
-sudo usermod -aG docker $USER
-```
-
-**Log out and back in** (or run `newgrp docker`) for the group change to
-take effect.
-
-Verify it works:
-
-```bash
-docker run --rm hello-world
-```
-
-&gt; See the [official Docker docs](https://docs.docker.com/engine/install/)
-&gt; for other distros.
-
+</code></pre></div></div>
+<p>Then add yourself to the <code class="language-plaintext highlighter-rouge">docker</code> group so you don't need <code class="language-plaintext highlighter-rouge">sudo</code> every
+time:</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>sudo usermod -aG docker $USER
+</code></pre></div></div>
+<p><strong>Log out and back in</strong> (or run <code class="language-plaintext highlighter-rouge">newgrp docker</code>) for the group change to
+take effect.</p>
+<p>Verify it works:</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker run --rm hello-world
+</code></pre></div></div>
+<blockquote>
+  <p>See the <a href="https://docs.docker.com/engine/install/">official Docker docs</a>
+for other distros.</p>
+</blockquote>
 </details>
 
 <details>
 <summary><b>Windows</b></summary>
-
-1. Install **[Docker Desktop](https://www.docker.com/products/docker-desktop/)**
-   and enable the **WSL 2 backend** during setup.
-2. Open **Windows Terminal** and launch a WSL2 distro (e.g. Ubuntu).
-3. Follow the rest of this guide inside that WSL2 terminal — all
-   commands work the same as on Linux.
-4. Proxies on `localhost:1080` / `localhost:1088` inside WSL2
+<ol>
+  <li>Install <strong><a href="https://www.docker.com/products/docker-desktop/">Docker Desktop</a></strong>
+   and enable the <strong>WSL 2 backend</strong> during setup.</li>
+  <li>Open <strong>Windows Terminal</strong> and launch a WSL2 distro (e.g. Ubuntu).</li>
+  <li>Follow the rest of this guide inside that WSL2 terminal — all
+   commands work the same as on Linux.</li>
+  <li>Proxies on <code class="language-plaintext highlighter-rouge">localhost:1080</code> / <code class="language-plaintext highlighter-rouge">localhost:1088</code> inside WSL2
    automatically forward to the Windows host, so your Windows apps can
-   use them too.
-
-&gt; **Note:** Windows support is community-tested. If you run into issues,
-&gt; please [open an issue](https://github.com/rqhu1995/docker-vpn/issues).
-
+   use them too.</li>
+</ol>
+<blockquote>
+  <p><strong>Note:</strong> Windows support is community-tested. If you run into issues,
+please <a href="https://github.com/rqhu1995/docker-vpn/issues">open an issue</a>.</p>
+</blockquote>
 </details>
 
 <h3 id="step-2--build-the-vpn-image">Step 2 — Build the VPN Image</h3>
@@ -482,27 +467,21 @@ rules to route only HKU traffic through it.</p>
 
 <details>
 <summary><b>Surge (macOS / iOS)</b></summary>
-
-```ini
-[Proxy]
+<div class="language-ini highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[Proxy]
 HKU-SOCKS5 = socks5, 127.0.0.1, 1080
 HKU-HTTP   = http, 127.0.0.1, 1088
 
 [Rule]
 DOMAIN-SUFFIX,hku.hk,HKU-SOCKS5
 DOMAIN-SUFFIX,hku.edu.hk,HKU-SOCKS5
-```
-
-SOCKS5 is preferred (UDP-capable); HTTP is a fallback for apps that
-don't speak SOCKS.
-
+</code></pre></div></div>
+<p>SOCKS5 is preferred (UDP-capable); HTTP is a fallback for apps that
+don't speak SOCKS.</p>
 </details>
 
 <details>
 <summary><b>Clash / Clash Verge / Clash Verge Rev / Mihomo</b></summary>
-
-```yaml
-proxies:
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code>proxies:
   - name: "HKU-SOCKS5"
     type: socks5
     server: 127.0.0.1
@@ -526,19 +505,14 @@ rules:
   - DOMAIN-SUFFIX,hku.hk,HKU
   - DOMAIN-SUFFIX,hku.edu.hk,HKU
   # ... your other rules below
-```
-
-In the UI, pick `HKU-SOCKS5` from the new "HKU" proxy group.
-
+</code></pre></div></div>
+<p>In the UI, pick <code class="language-plaintext highlighter-rouge">HKU-SOCKS5</code> from the new "HKU" proxy group.</p>
 </details>
 
 <details>
 <summary><b>V2RayN / V2RayNG (Windows / Android)</b></summary>
-
-Add to your Xray JSON config:
-
-```json
-{
+<p>Add to your Xray JSON config:</p>
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code>{
   "outbounds": [
     {
       "tag": "hku-vpn",
@@ -560,21 +534,17 @@ Add to your Xray JSON config:
     ]
   }
 }
-```
-
-Apply via "Settings → Routing → Custom routing rules" or a custom config
-profile.
-
+</code></pre></div></div>
+<p>Apply via "Settings → Routing → Custom routing rules" or a custom config
+profile.</p>
 </details>
 
 <details>
 <summary><b>Other clients</b></summary>
-
-The pattern is the same in any tool that supports upstream SOCKS5/HTTP
-proxies + rule-based routing: declare `127.0.0.1:1080` as a proxy,
-write a domain rule for `hku.hk`, point the rule at it. Quantumult X,
-Loon, sing-box, Shadowrocket, etc. all support this.
-
+<p>The pattern is the same in any tool that supports upstream SOCKS5/HTTP
+proxies + rule-based routing: declare <code class="language-plaintext highlighter-rouge">127.0.0.1:1080</code> as a proxy,
+write a domain rule for <code class="language-plaintext highlighter-rouge">hku.hk</code>, point the rule at it. Quantumult X,
+Loon, sing-box, Shadowrocket, etc. all support this.</p>
 </details>
 
 <p><strong>Which domains to route:</strong> <code class="language-plaintext highlighter-rouge">hku.hk</code> and <code class="language-plaintext highlighter-rouge">hku.edu.hk</code> cover most
