@@ -31,6 +31,25 @@ The default listeners are:
 | SOCKS5 | `127.0.0.1:1080` | Preferred application and SSH proxy |
 | HTTP | `127.0.0.1:1088` | HTTP/HTTPS clients without SOCKS support |
 
+## Table of Contents
+
+- [What You Can Do](#what-you-can-do)
+- [Common Workflows](#common-workflows)
+- [How It Works](#how-it-works)
+- [Compatibility and Versions](#compatibility-and-versions)
+- [Requirements](#requirements)
+- [Install](#install)
+- [Daily Commands](#daily-commands)
+- [Use the Local Proxies](#use-the-local-proxies)
+- [Surge Split Routing](#surge-split-routing)
+- [SSH and Remote Desktop Through HKU](#ssh-and-remote-desktop-through-hku)
+- [Give a Campus Computer the Local Proxy](#give-a-campus-computer-the-local-proxy)
+- [Advanced Reliability](#advanced-reliability)
+- [Troubleshooting](#troubleshooting)
+- [Security](#security)
+- [Portable Core and Optional Automation](#portable-core-and-optional-automation)
+- [Credits and Licensing](#credits-and-licensing)
+
 ## What You Can Do
 
 - Open HKU websites and library resources without sending unrelated traffic
