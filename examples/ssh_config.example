@@ -1,0 +1,26 @@
+# Merge and customize these blocks in ~/.ssh/config.
+
+Host campus-host
+  HostName 10.0.0.10
+  User yourname
+  Port 22
+  IdentityFile ~/.ssh/id_ed25519
+  ProxyCommand nc -X 5 -x 127.0.0.1:1080 %h %p
+  ConnectTimeout 30
+  ServerAliveInterval 30
+  ServerAliveCountMax 3
+  TCPKeepAlive yes
+
+# This alias also exposes the local proxy-client mixed port on the remote host.
+# The explicit remote 127.0.0.1 binding prevents other campus users from using it.
+Host campus-host-tunnel
+  HostName 10.0.0.10
+  User yourname
+  Port 22
+  IdentityFile ~/.ssh/id_ed25519
+  ProxyCommand nc -X 5 -x 127.0.0.1:1080 %h %p
+  RemoteForward 127.0.0.1:8152 127.0.0.1:6152
+  ExitOnForwardFailure yes
+  ServerAliveInterval 30
+  ServerAliveCountMax 3
+  TCPKeepAlive yes

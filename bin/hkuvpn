@@ -1,0 +1,203 @@
+#!/usr/bin/env bash
+
+set -u
+
+VPN_HOME="${DOCKER_VPN_HOME:-$HOME/docker-vpn}"
+CONFIG_DIR="${HKU_CONFIG_DIR:-$HOME/.vpn}"
+ENV_FILE="$CONFIG_DIR/hku.env"
+PASS_FILE="$CONFIG_DIR/hku.pass"
+CONTAINER_NAME="vpn-hku"
+IMAGE_NAME="${HKU_IMAGE:-local/vpn}"
+EMPTY_SHA256_PIN="47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="
+
+usage() {
+    cat <<'EOF'
+Usage: hkuvpn [cn|hk|--recover|--status|--stop]
+
+  cn, hk      Override HKU_ENDPOINT for this connection
+  --recover   Repair the Colima/Docker backend without requesting MFA
+  --status    Show container, proxy-port, and OpenConnect status
+  --stop      Stop the VPN container
+EOF
+}
+
+wait_for_docker() {
+    local attempt=1
+    while ((attempt <= 20)); do
+        docker info >/dev/null 2>&1 && return 0
+        sleep 1
+        ((attempt++))
+    done
+    return 1
+}
+
+recover_docker() {
+    docker info >/dev/null 2>&1 && return 0
+
+    if ! command -v colima >/dev/null 2>&1; then
+        echo "Docker is unavailable and Colima is not installed." >&2
+        return 1
+    fi
+
+    echo "Docker is unavailable; starting Colima..."
+    colima start --cpu 2 --memory 2 --disk 20 --vm-type vz --mount-type virtiofs || true
+    wait_for_docker && return 0
+
+    echo "Docker is still unavailable; restarting Colima..."
+    colima restart || return 1
+    wait_for_docker
+}
+
+show_status() {
+    if ! docker info >/dev/null 2>&1; then
+        echo "Docker: unavailable"
+        return 1
+    fi
+
+    docker ps -a --filter "name=^/${CONTAINER_NAME}$" \
+        --format 'container={{.Names}} status={{.Status}} ports={{.Ports}}'
+    if docker ps --filter "name=^/${CONTAINER_NAME}$" --format '{{.Names}}' | grep -qx "$CONTAINER_NAME"; then
+        docker exec "$CONTAINER_NAME" openconnect --version 2>&1 | head -n 1
+    fi
+}
+
+fetch_certificate_pin() {
+    local host="$1"
+    local cache_file="$2"
+    local cert_file pin
+
+    cert_file=$(mktemp "$CONFIG_DIR/hku-cert.XXXXXX") || return 1
+    if ! echo | openssl s_client -connect "$host:443" -servername "$host" \
+        >"$cert_file" 2>/dev/null; then
+        rm -f "$cert_file"
+        return 1
+    fi
+
+    pin=$(openssl x509 -in "$cert_file" -pubkey -noout 2>/dev/null \
+        | openssl pkey -pubin -outform der 2>/dev/null \
+        | openssl dgst -sha256 -binary 2>/dev/null \
+        | openssl enc -base64 -A 2>/dev/null)
+    rm -f "$cert_file"
+
+    if [[ ! "$pin" =~ ^[A-Za-z0-9+/]{43}=$ ]] || [[ "$pin" == "$EMPTY_SHA256_PIN" ]]; then
+        return 1
+    fi
+
+    printf 'pin-sha256:%s\n' "$pin" >"$cache_file"
+    chmod 600 "$cache_file"
+}
+
+command_name="${1:-}"
+case "$command_name" in
+    -h|--help)
+        usage
+        exit 0
+        ;;
+    --recover)
+        if ! recover_docker; then
+            echo "Docker backend recovery failed." >&2
+            exit 1
+        fi
+        echo "Docker backend is ready."
+        exit 0
+        ;;
+    --status)
+        show_status
+        exit $?
+        ;;
+    --stop)
+        docker rm -f "$CONTAINER_NAME" >/dev/null 2>&1 || true
+        echo "HKU VPN stopped."
+        exit 0
+        ;;
+    ""|cn|hk)
+        ;;
+    *)
+        echo "Unknown argument: $command_name" >&2
+        usage >&2
+        exit 2
+        ;;
+esac
+
+recover_docker || {
+    echo "Unable to reach Docker. Run 'hkuvpn --recover' and inspect 'colima status'." >&2
+    exit 1
+}
+
+if [[ ! -r "$ENV_FILE" ]]; then
+    echo "Missing configuration: $ENV_FILE" >&2
+    echo "Copy $VPN_HOME/examples/hku.env.example and edit HKU_USER." >&2
+    exit 1
+fi
+if [[ ! -r "$PASS_FILE" ]]; then
+    echo "Missing password file: $PASS_FILE" >&2
+    exit 1
+fi
+
+# The template contains simple KEY=VALUE assignments only.
+# shellcheck disable=SC1090
+set -a
+if ! source "$ENV_FILE"; then
+    set +a
+    echo "Could not load $ENV_FILE." >&2
+    exit 1
+fi
+set +a
+
+if [[ -z "${HKU_USER:-}" ]] || [[ "$HKU_USER" == youruid@* ]]; then
+    echo "Set a real HKU_USER in $ENV_FILE." >&2
+    exit 1
+fi
+
+endpoint="${command_name:-${HKU_ENDPOINT:-hk}}"
+case "$endpoint" in
+    cn) host="121.37.195.197" ;;
+    hk) host="vpn2fa.hku.hk" ;;
+    *)
+        echo "HKU_ENDPOINT must be 'cn' or 'hk', not '$endpoint'." >&2
+        exit 2
+        ;;
+esac
+
+socks_port="${HKU_SOCKS_PORT:-1080}"
+http_port="${HKU_HTTP_PORT:-1088}"
+pin_cache="$CONFIG_DIR/pin-$endpoint.cache"
+servercert=""
+
+if [[ -r "$pin_cache" ]]; then
+    servercert=$(tr -d '\r\n' <"$pin_cache")
+fi
+if [[ ! "$servercert" =~ ^pin-sha256:[A-Za-z0-9+/]{43}=$ ]] \
+    || [[ "$servercert" == "pin-sha256:$EMPTY_SHA256_PIN" ]]; then
+    echo "Fetching the certificate pin for $host..."
+    if ! fetch_certificate_pin "$host" "$pin_cache"; then
+        echo "Could not obtain a valid certificate from $host." >&2
+        echo "Check the route, try the other endpoint, or inspect your proxy-client rules." >&2
+        exit 1
+    fi
+    servercert=$(tr -d '\r\n' <"$pin_cache")
+fi
+
+resolve_args=()
+if [[ -n "${HKU_RESOLVE:-}" ]]; then
+    resolve_args=(-e "OC_RESOLVE=$HKU_RESOLVE")
+fi
+
+echo "Endpoint: $endpoint ($host)"
+echo "Local proxies: SOCKS5=127.0.0.1:$socks_port HTTP=127.0.0.1:$http_port"
+
+docker rm -f "$CONTAINER_NAME" >/dev/null 2>&1 || true
+exec docker run --rm -it \
+    --name "$CONTAINER_NAME" \
+    --hostname "$CONTAINER_NAME" \
+    --cap-add NET_ADMIN \
+    --device /dev/net/tun \
+    --publish "127.0.0.1:$socks_port:1080" \
+    --publish "127.0.0.1:$http_port:1088" \
+    -e "HKU_PASSWORD=$(cat "$PASS_FILE")" \
+    -e "OC_USER=$HKU_USER" \
+    -e "OC_HOST=$host" \
+    -e "OC_SERVERCERT=$servercert" \
+    -e "OC_MFA_MODE=terminal" \
+    "${resolve_args[@]}" \
+    "$IMAGE_NAME"
