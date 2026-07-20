@@ -13,19 +13,133 @@ set password $env(HKU_PASSWORD)
 set user $env(OC_USER)
 set host $env(OC_HOST)
 set servercert $env(OC_SERVERCERT)
+set response_file "/run/hkuvpn-response"
+set mfa_mode "file"
+if {[info exists env(OC_MFA_MODE)] && [string trim $env(OC_MFA_MODE)] ne ""} {
+    set mfa_mode [string tolower [string trim $env(OC_MFA_MODE)]]
+}
+if {$mfa_mode ni {file terminal}} {
+    puts stderr "ERROR: OC_MFA_MODE must be 'file' or 'terminal'"
+    exit 1
+}
+set resolve_args {}
+if {[info exists env(OC_RESOLVE)] && [string trim $env(OC_RESOLVE)] ne ""} {
+    lappend resolve_args "--resolve=$env(OC_RESOLVE)"
+}
+
+proc append_session_marker {message} {
+    global env
+    if {![info exists env(OC_LOGFILE)] || [string trim $env(OC_LOGFILE)] eq ""} {
+        return
+    }
+
+    if {[catch {
+        set fh [open $env(OC_LOGFILE) a]
+        puts $fh "[clock format [clock seconds] -format {%Y-%m-%dT%H:%M:%S%z}] $message"
+        close $fh
+    } err]} {
+        puts stderr "Unable to append to OpenConnect session log: $err"
+    }
+}
+
+proc enable_session_log {} {
+    global env
+    if {![info exists env(OC_LOGFILE)] || [string trim $env(OC_LOGFILE)] eq ""} {
+        return
+    }
+
+    append_session_marker "post-MFA OpenConnect logging started"
+    if {[catch {log_file -a $env(OC_LOGFILE)} err]} {
+        puts stderr "Unable to enable OpenConnect session log: $err"
+    } else {
+        puts stderr "OpenConnect post-MFA log: $env(OC_LOGFILE)"
+    }
+}
+
+proc finish_with_openconnect_status {context} {
+    if {[catch {wait} wait_status]} {
+        append_session_marker "openconnect wait failed after $context: $wait_status"
+        puts stderr "openconnect wait failed after $context: $wait_status"
+        exit 1
+    }
+
+    set exit_code 1
+    if {[llength $wait_status] >= 4 && [lindex $wait_status 2] == 0} {
+        set exit_code [lindex $wait_status 3]
+    }
+
+    append_session_marker "openconnect exited after $context; wait status: $wait_status"
+    puts stderr "openconnect exited after $context; wait status: $wait_status"
+    exit $exit_code
+}
+
+proc wait_for_mfa_response {path} {
+    puts stderr "HKUVPN_MFA_RESPONSE_REQUIRED"
+    puts stderr "Waiting for MFA response file: $path"
+
+    while {1} {
+        if {[file exists $path]} {
+            set fh [open $path r]
+            set response [string trim [read $fh]]
+            close $fh
+            file delete -force $path
+
+            if {$response ne ""} {
+                return $response
+            }
+        }
+        after 500
+    }
+}
 
 # Start supervisord in background (manages pproxy: SOCKS:1080 / HTTP:1088)
 exec /usr/bin/supervisord --configuration=/etc/supervisord.conf --logfile=/dev/null >/dev/null 2>/dev/null &
 
 # Foreground: spawn openconnect with credentials from env
 spawn openconnect $host \
+    {*}$resolve_args \
     --user=$user \
     --useragent=AnyConnect \
     --servercert $servercert \
+    --verbose \
+    --timestamp \
+    --reconnect-timeout=1800 \
     --no-external-auth
 
-expect "Password:"
-send "$password\r"
+expect {
+    -nocase "Password:" {
+        send "$password\r"
+    }
+    eof {
+        finish_with_openconnect_status "waiting for password prompt"
+    }
+}
 
-expect "Response:"
-interact
+expect {
+    -nocase "Response:" {
+        if {$mfa_mode eq "terminal"} {
+            unset password
+            puts stderr "Enter the current MFA code at the Response prompt."
+            interact
+            finish_with_openconnect_status "interactive session"
+        } else {
+            set response [wait_for_mfa_response $response_file]
+            send "$response\r"
+            unset response
+            unset password
+            expect {
+                -nocase "CSTP connected" {
+                    enable_session_log
+                    expect eof
+                    finish_with_openconnect_status "connected session"
+                }
+                eof {
+                    finish_with_openconnect_status "waiting for tunnel after 2FA"
+                }
+            }
+        }
+    }
+    eof {
+        finish_with_openconnect_status "waiting for 2FA response prompt"
+    }
+}
