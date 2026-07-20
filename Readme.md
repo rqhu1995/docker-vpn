@@ -2,10 +2,21 @@
 
 [English](Readme.md) | [简体中文](README.zh-CN.md)
 
-Run HKU's Cisco-compatible VPN inside Docker and expose the tunnel as
-loopback-only SOCKS5 and HTTP proxies. Applications use HKU only when a rule or
-an explicit proxy setting sends them there. The host's default route stays
-unchanged.
+Connect to HKU's VPN from a Docker container, then use the tunnel as a local
+proxy so only the applications and destinations you choose go through HKU.
+
+**The problem:** A system-wide Cisco AnyConnect connection hands routing control
+to the VPN profile. That is inconvenient when you need HKU Library, campus SSH,
+or a remote desktop while other applications must stay on your normal network
+or an existing proxy service.
+
+**The solution:** Docker-VPN runs OpenConnect in an isolated container and
+exports the HKU tunnel on loopback-only SOCKS5 and HTTP ports. Your browser,
+terminal, Surge/Clash rules, SSH configuration, or remote-desktop routing decides
+what uses HKU. The host's default route stays unchanged.
+
+> **Quick start:** run `hkuvpn`, enter the current six-digit MFA code, then use
+> SOCKS5 `127.0.0.1:1080` or HTTP `127.0.0.1:1088`.
 
 ```text
 normal Internet / existing proxy client --------------------> external sites
@@ -13,30 +24,31 @@ normal Internet / existing proxy client --------------------> external sites
 application -> 127.0.0.1:1080/1088 -> Docker -> OpenConnect -> HKU resources
 ```
 
-Default listeners:
+The default listeners are:
 
 | Protocol | Address | Purpose |
 |---|---|---|
 | SOCKS5 | `127.0.0.1:1080` | Preferred application and SSH proxy |
 | HTTP | `127.0.0.1:1088` | HTTP/HTTPS clients without SOCKS support |
 
+## What You Can Do
+
+- Open HKU websites and library resources without sending unrelated traffic
+  through the university VPN.
+- Keep an existing Surge, Clash, sing-box, or other proxy service active while
+  HKU traffic follows a separate route.
+- Reach campus SSH and remote-desktop hosts through the local HKU proxy.
+- Give a coding agent on a campus computer access to the proxy running on your
+  client through a loopback-only SSH reverse forward.
+- Use the same launcher from Zsh, Bash, or Fish on a Colima, Docker Desktop, or
+  native Docker setup.
+- Inspect status, stop the tunnel, or recover the Colima/Docker backend without
+  unnecessarily starting another MFA attempt.
+
 This project does not turn HKU VPN into a general anonymity service, replace
 your normal Internet proxy, or bypass an organization's acceptable-use policy.
 
-## What Is New in This Revision
-
-- English and Chinese documentation with the same operating model.
-- A shared `bin/hkuvpn` launcher plus native Zsh/Bash and Fish wrappers.
-- `hkuvpn --status`, `--stop`, and non-authenticating `--recover` commands.
-- Compatible terminal MFA and detached/file-based MFA modes.
-- Longer OpenConnect reconnect handling, optional gateway pinning, and clearer
-  exit status reporting.
-- Practical Surge rules that keep the VPN control connection out of its own
-  tunnel.
-- SSH-through-HKU and reverse SSH proxy instructions for remote coding agents.
-- A layered Colima, Docker, OpenConnect, and proxy-client troubleshooting guide.
-
-## Choose a Mode
+## Common Workflows
 
 | Situation | Recommended mode |
 |---|---|
@@ -46,7 +58,7 @@ your normal Internet proxy, or bypass an organization's acceptable-use policy.
 | Run a coding agent on a campus computer | Reverse-forward the local proxy to remote loopback port `8152` |
 | Both computers are in Hong Kong and the subscription accepts mainland ingress only | Use a supported ingress or move the proxy client to a reachable mainland host; reverse SSH alone cannot change the ingress location |
 
-## How the Layers Fit Together
+## How It Works
 
 ```text
 Mac/Linux host
@@ -65,25 +77,21 @@ Cisco AnyConnect is the server protocol in this design. The official Cisco
 desktop client is not started for this connection; OpenConnect runs inside the
 container so it cannot replace the host default route.
 
-## Maintainer Reference Setup
+## Compatibility and Versions
 
-This is a tested snapshot, not a minimum-version requirement:
-
-| Component | Tested on 2026-07-20 |
+| Area | Current support |
 |---|---|
-| macOS | 26.5.1, Apple Silicon |
-| Terminal / shell | Ghostty, Fish 4.8.1 |
-| Colima | 0.10.3, VZ, `virtiofs`, Docker runtime |
-| Docker | client 29.6.2, server 29.2.1 |
-| Surge | macOS, mixed proxy on `127.0.0.1:6152` |
-| OpenConnect in `alpine:3.23` image | 9.12 |
-| Current upstream OpenConnect release | 9.21 |
+| macOS container runtime | Colima or Docker Desktop |
+| Linux container runtime | Docker Engine |
+| Windows | Docker Desktop with WSL2; community-tested |
+| Shell | Zsh, Bash, and Fish |
+| Rule-based proxy clients | Surge examples included; the same routing model applies to Clash/Mihomo, sing-box, and similar clients |
+| OpenConnect in the current `alpine:3.23` image | 9.12 |
 
-The Homebrew OpenConnect installation on the host is not used by the container.
-The image follows Alpine 3.23's package, which is currently 9.12. Upstream 9.21
-is the newest release as of this snapshot; check the
-[official releases](https://gitlab.com/openconnect/openconnect/-/releases) before
-making version-sensitive assumptions.
+OpenConnect runs inside the image, so a Homebrew OpenConnect installation on the
+host is not used. The image follows Alpine 3.23's package. Check the
+[official OpenConnect releases](https://gitlab.com/openconnect/openconnect/-/releases)
+when investigating version-specific behavior.
 
 ## Requirements
 
@@ -495,22 +503,17 @@ Do not treat `autossh` or `colima status` alone as an end-to-end health check.
 - Keep private hostnames, campus IPs, account names, certificate caches, logs,
   subscription URLs, and SSH keys out of issues and commits.
 
-## Repository vs Local Deployment
+## Portable Core and Optional Automation
 
-The portable repository includes the launcher, shell wrappers, routing examples,
-and container entrypoint. A maintainer deployment may additionally include
-machine-specific Fish recovery logic, Surge CLI automation, tmux monitoring,
-LaunchAgents, and diagnostic logs under `~/.vpn/logs/`. Those items are examples
-of advanced operations, not hidden project requirements.
+The launcher, shell wrappers, routing examples, and container entrypoint are the
+portable core of Docker-VPN. They do not require Surge, tmux, or a particular
+terminal application.
 
-Before comparing local and GitHub behavior:
-
-```bash
-git status --short --branch
-git fetch origin
-git log --oneline --left-right HEAD...origin/main
-git diff origin/main --
-```
+Users who need unattended or long-running operation can add proxy-client CLI
+automation, tmux monitoring, system services such as a macOS LaunchAgent, and
+diagnostic logs under `~/.vpn/logs/`. These integrations should remain optional
+and machine-specific so the basic HKU proxy continues to work with other proxy
+clients and Docker environments.
 
 ## Credits and Licensing
 
