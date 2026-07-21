@@ -19,7 +19,7 @@ traffic is routed, and the host's default route stays unchanged.
 > **Quick start:** run `hkuvpn`, enter the current six-digit MFA code, then use
 > SOCKS5 `127.0.0.1:1080` or HTTP `127.0.0.1:1088`.
 
-![Applications can use the local Docker-VPN HKU proxy directly or through an optional rules client](docs/images/split-routing-en.png)
+![Docker-VPN exposes the local HKU proxy before applications use it directly or through routing rules](docs/images/split-routing-en.png)
 
 Surge is the recommended and best-documented rules-client example, not a
 dependency. Direct application, SSH, and browser proxy settings work without
@@ -81,12 +81,15 @@ your normal Internet proxy, or bypass an organization's acceptable-use policy.
 
 ## How It Works
 
-1. A browser, terminal, or SSH configuration can select the HKU proxy directly.
-   An optional rules client can make the same choice by destination.
-2. Selected traffic enters the loopback SOCKS5 or HTTP listener and reaches the
-   `vpn-hku` container.
-3. OpenConnect carries that traffic through the HKU AnyConnect tunnel. All
-   non-HKU routing remains outside this project and keeps its existing policy.
+1. Run `hkuvpn` first. The container establishes the OpenConnect tunnel and
+   exposes the loopback SOCKS5 and HTTP listeners.
+2. After the listeners are ready, enter one of those addresses in an
+   application, SSH configuration, browser, or optional rules client.
+3. During use, requests selected by that configuration reach `1080` or `1088`,
+   enter the container, and travel through the HKU AnyConnect tunnel.
+4. A rules client can simultaneously send every non-HKU request to `DIRECT`, an
+   existing proxy or VPN, or another policy. Those paths do not pass through
+   Docker-VPN unless the user explicitly selects the HKU upstream for them.
 
 Cisco AnyConnect is the server protocol in this design. The official Cisco
 desktop client is not started for this connection; OpenConnect runs inside the

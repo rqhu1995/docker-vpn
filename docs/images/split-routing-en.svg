@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="540" viewBox="0 0 1200 540" role="img" aria-labelledby="title desc">
-  <title id="title">What Docker-VPN provides</title>
-  <desc id="desc">Applications can use the local HKU proxy directly or through an optional Surge or Clash rule. Docker-VPN exposes the HKU OpenConnect tunnel on loopback ports 1080 and 1088. All other routing policies remain outside the project.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
+  <title id="title">Start the service first, then route traffic</title>
+  <desc id="desc">Docker-VPN first establishes the HKU tunnel and exposes local ports 1080 and 1088. Applications can then reference those ready ports directly or through Surge or Clash rules. At runtime, HKU traffic enters Docker-VPN while separate routing policies can send AI traffic directly or through an existing proxy.</desc>
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
       <path d="M 0 0 L 10 5 L 0 10 z" fill="#334155"/>
@@ -11,77 +11,126 @@
     <style>
       .title { font: 700 28px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; fill: #0f172a; }
       .subtitle { font: 400 16px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; fill: #475569; }
+      .section { font: 700 12px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; fill: #475569; }
       .heading { font: 700 18px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; fill: #0f172a; }
       .body { font: 500 14px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; fill: #334155; }
       .small { font: 500 12px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; fill: #64748b; }
-      .mono { font: 600 13px ui-monospace, SFMono-Regular, Menlo, monospace; fill: #0f172a; }
+      .mono { font: 600 12px ui-monospace, SFMono-Regular, Menlo, monospace; fill: #0f172a; }
       .arrow { fill: none; stroke: #334155; stroke-width: 2.5; marker-end: url(#arrow); }
+      .setup-arrow { fill: none; stroke: #64748b; stroke-width: 2.5; stroke-dasharray: 7 6; marker-end: url(#arrow); }
     </style>
   </defs>
 
-  <rect x="1" y="1" width="1198" height="538" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
-  <text x="40" y="48" class="title">What Docker-VPN provides</text>
-  <text x="40" y="76" class="subtitle">One HKU VPN tunnel exposed as two local proxy ports</text>
+  <rect x="1" y="1" width="1198" height="758" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="40" y="48" class="title">Start the service first, then route traffic</text>
+  <text x="40" y="76" class="subtitle">Docker-VPN creates the HKU upstream before any application or rules client can use it</text>
 
-  <rect x="40" y="140" width="205" height="250" rx="8" fill="#f8fafc" stroke="#94a3b8" stroke-width="2"/>
-  <text x="142" y="177" text-anchor="middle" class="heading">Apps and tools</text>
-  <circle cx="74" cy="229" r="23" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.5"/>
-  <circle cx="74" cy="229" r="12" fill="none" stroke="#0284c7" stroke-width="2"/>
-  <path d="M62 229 H86 M74 217 C68 223 68 235 74 241 M74 217 C80 223 80 235 74 241" fill="none" stroke="#0284c7" stroke-width="1.5"/>
-  <rect x="119" y="206" width="46" height="46" rx="8" fill="#111827"/>
-  <text x="142" y="235" text-anchor="middle" style="font: 700 15px ui-monospace, SFMono-Regular, Menlo, monospace; fill: #ffffff;">&gt;_</text>
-  <image href="brands/windows-app.png" x="181" y="206" width="46" height="46" clip-path="url(#rounded-icon)"/>
-  <text x="74" y="279" text-anchor="middle" class="small">Browser</text>
-  <text x="142" y="279" text-anchor="middle" class="small">SSH</text>
-  <text x="204" y="279" text-anchor="middle" class="small">Remote</text>
-  <rect x="59" y="309" width="167" height="56" rx="6" fill="#ffffff"/>
-  <text x="142" y="333" text-anchor="middle" class="body">Traffic that needs HKU</text>
-  <text x="142" y="354" text-anchor="middle" class="small">selected by you</text>
+  <rect x="40" y="101" width="88" height="24" rx="12" fill="#e2e8f0"/>
+  <text x="84" y="117" text-anchor="middle" class="section">SETUP</text>
+  <line x1="140" y1="113" x2="1160" y2="113" stroke="#e2e8f0" stroke-width="2"/>
 
-  <rect x="310" y="118" width="245" height="128" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="2"/>
-  <circle cx="338" cy="151" r="15" fill="#475569"/>
-  <text x="338" y="156" text-anchor="middle" style="font: 700 13px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; fill: #ffffff;">A</text>
-  <text x="362" y="157" class="heading">Direct app setup</text>
-  <text x="333" y="191" class="body">Set SOCKS5 or HTTP in the app</text>
-  <text x="333" y="216" class="small">No routing client required</text>
+  <rect x="40" y="143" width="420" height="184" rx="9" fill="#ecfdf5" stroke="#047857" stroke-width="3"/>
+  <rect x="61" y="160" width="154" height="24" rx="12" fill="#047857"/>
+  <text x="138" y="176" text-anchor="middle" style="font: 700 11px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; fill: #ffffff;">1 · START DOCKER-VPN</text>
+  <image href="docker-vpn-icon.png" x="62" y="208" width="76" height="76" clip-path="url(#rounded-icon)"/>
+  <text x="158" y="211" class="heading" style="font-size: 21px;">Docker-VPN / OpenConnect</text>
+  <text x="158" y="235" class="small">Tunnel and local listeners become ready</text>
+  <rect x="158" y="248" width="274" height="30" rx="6" fill="#ffffff" stroke="#a7f3d0"/>
+  <text x="174" y="268" class="mono">SOCKS5  127.0.0.1:1080</text>
+  <rect x="158" y="284" width="274" height="30" rx="6" fill="#ffffff" stroke="#a7f3d0"/>
+  <text x="174" y="304" class="mono">HTTP    127.0.0.1:1088</text>
 
-  <rect x="310" y="274" width="245" height="128" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
-  <circle cx="338" cy="307" r="15" fill="#2563eb"/>
-  <text x="338" y="312" text-anchor="middle" style="font: 700 13px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; fill: #ffffff;">B</text>
-  <text x="362" y="313" class="heading">Optional rules client</text>
-  <image href="brands/surge.png" x="333" y="335" width="38" height="38" clip-path="url(#rounded-icon)"/>
-  <image href="brands/clash-verge-rev.png" x="383" y="335" width="38" height="38" clip-path="url(#rounded-icon)"/>
-  <text x="438" y="351" class="body">Surge · Clash</text>
-  <text x="438" y="371" class="small">HKU rule only shown</text>
+  <path d="M460 230 H510" class="setup-arrow"/>
+  <rect x="470" y="197" width="48" height="22" rx="11" fill="#ffffff" stroke="#cbd5e1"/>
+  <text x="494" y="212" text-anchor="middle" class="small">ready</text>
 
-  <rect x="619" y="108" width="322" height="304" rx="12" fill="#d1fae5" opacity="0.7"/>
-  <rect x="629" y="118" width="302" height="284" rx="8" fill="#ecfdf5" stroke="#047857" stroke-width="4"/>
-  <rect x="653" y="138" width="120" height="24" rx="12" fill="#047857"/>
-  <text x="713" y="154" text-anchor="middle" style="font: 700 11px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; fill: #ffffff;">THIS PROJECT</text>
-  <image href="docker-vpn-icon.png" x="653" y="181" width="68" height="68" clip-path="url(#rounded-icon)"/>
-  <text x="743" y="211" class="heading" style="font-size: 23px;">Docker-VPN</text>
-  <text x="743" y="235" class="small">HKU VPN as a local proxy</text>
-  <rect x="653" y="270" width="254" height="42" rx="6" fill="#ffffff" stroke="#a7f3d0"/>
-  <text x="670" y="296" class="mono">SOCKS5  127.0.0.1:1080</text>
-  <rect x="653" y="323" width="254" height="42" rx="6" fill="#ffffff" stroke="#a7f3d0"/>
-  <text x="670" y="349" class="mono">HTTP    127.0.0.1:1088</text>
-  <text x="780" y="387" text-anchor="middle" class="small">OpenConnect runs inside the container</text>
+  <rect x="520" y="133" width="640" height="194" rx="9" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+  <rect x="541" y="150" width="225" height="24" rx="12" fill="#2563eb"/>
+  <text x="653" y="166" text-anchor="middle" style="font: 700 11px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; fill: #ffffff;">2 · REFERENCE THE READY PORTS</text>
+  <rect x="541" y="191" width="280" height="111" rx="7" fill="#ffffff"/>
+  <circle cx="569" cy="219" r="15" fill="#475569"/>
+  <text x="569" y="224" text-anchor="middle" style="font: 700 13px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; fill: #ffffff;">A</text>
+  <text x="594" y="225" class="heading">Direct app settings</text>
+  <text x="561" y="258" class="body">Enter either local proxy in the app</text>
+  <text x="561" y="281" class="small">No Surge or Clash required</text>
+  <rect x="840" y="191" width="299" height="111" rx="7" fill="#ffffff"/>
+  <circle cx="868" cy="219" r="15" fill="#2563eb"/>
+  <text x="868" y="224" text-anchor="middle" style="font: 700 13px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; fill: #ffffff;">B</text>
+  <text x="893" y="225" class="heading">Rules-client settings</text>
+  <image href="brands/surge.png" x="862" y="248" width="38" height="38" clip-path="url(#rounded-icon)"/>
+  <image href="brands/clash-verge-rev.png" x="910" y="248" width="38" height="38" clip-path="url(#rounded-icon)"/>
+  <text x="965" y="263" class="body">Add the HKU upstream</text>
+  <text x="965" y="284" class="small">Surge is the recommended example</text>
 
-  <rect x="1000" y="153" width="160" height="218" rx="8" fill="#fff1f2" stroke="#e11d48" stroke-width="2"/>
-  <image href="brands/hku-shield.png" x="1040" y="176" width="80" height="80" clip-path="url(#rounded-icon)"/>
-  <text x="1080" y="291" text-anchor="middle" class="heading">HKU resources</text>
-  <text x="1080" y="320" text-anchor="middle" class="small">Library · SSH</text>
-  <text x="1080" y="341" text-anchor="middle" class="small">Remote desktop</text>
+  <rect x="40" y="355" width="150" height="24" rx="12" fill="#e2e8f0"/>
+  <text x="115" y="371" text-anchor="middle" class="section">RUNTIME TRAFFIC</text>
+  <line x1="202" y1="367" x2="1160" y2="367" stroke="#e2e8f0" stroke-width="2"/>
 
-  <path d="M245 225 C278 225 278 182 310 182" class="arrow"/>
-  <path d="M245 299 C278 299 278 338 310 338" class="arrow"/>
-  <path d="M555 182 C590 182 590 229 629 229" class="arrow"/>
-  <path d="M555 338 C590 338 590 291 629 291" class="arrow"/>
-  <path d="M931 260 H1000" class="arrow"/>
-  <rect x="946" y="228" width="64" height="22" rx="11" fill="#ffffff" stroke="#cbd5e1"/>
-  <text x="978" y="243" text-anchor="middle" class="small">HKU VPN</text>
+  <rect x="40" y="421" width="170" height="206" rx="8" fill="#f8fafc" stroke="#94a3b8" stroke-width="2"/>
+  <text x="125" y="453" text-anchor="middle" class="heading">App requests</text>
+  <circle cx="76" cy="502" r="22" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.5"/>
+  <circle cx="76" cy="502" r="11" fill="none" stroke="#0284c7" stroke-width="2"/>
+  <path d="M65 502 H87 M76 491 C70 497 70 507 76 513 M76 491 C82 497 82 507 76 513" fill="none" stroke="#0284c7" stroke-width="1.5"/>
+  <rect x="103" y="480" width="44" height="44" rx="8" fill="#111827"/>
+  <text x="125" y="508" text-anchor="middle" style="font: 700 14px ui-monospace, SFMono-Regular, Menlo, monospace; fill: #ffffff;">&gt;_</text>
+  <image href="brands/windows-app.png" x="158" y="480" width="44" height="44" clip-path="url(#rounded-icon)"/>
+  <text x="125" y="558" text-anchor="middle" class="body">Use the settings above</text>
+  <text x="125" y="581" text-anchor="middle" class="small">for each destination</text>
 
-  <rect x="40" y="453" width="1120" height="54" rx="6" fill="#f1f5f9"/>
-  <text x="600" y="476" text-anchor="middle" class="body">Outside this project: DIRECT, AI/external proxies, other VPNs, and every non-HKU routing rule</text>
-  <text x="600" y="496" text-anchor="middle" class="small">Keep those policies in your app or routing client; Docker-VPN only adds the HKU upstream above</text>
+  <rect x="264" y="405" width="221" height="92" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="2"/>
+  <circle cx="291" cy="435" r="15" fill="#475569"/>
+  <text x="291" y="440" text-anchor="middle" style="font: 700 13px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; fill: #ffffff;">A</text>
+  <text x="316" y="441" class="heading">Configured app</text>
+  <text x="287" y="473" class="small">HKU request uses its proxy setting</text>
+
+  <rect x="264" y="528" width="221" height="116" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+  <circle cx="291" cy="558" r="15" fill="#2563eb"/>
+  <text x="291" y="563" text-anchor="middle" style="font: 700 13px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; fill: #ffffff;">B</text>
+  <text x="316" y="564" class="heading">Surge / Clash</text>
+  <image href="brands/surge.png" x="287" y="586" width="38" height="38" clip-path="url(#rounded-icon)"/>
+  <image href="brands/clash-verge-rev.png" x="337" y="586" width="38" height="38" clip-path="url(#rounded-icon)"/>
+  <text x="392" y="601" class="body">Apply rules</text>
+  <text x="392" y="622" class="small">Choose an upstream</text>
+
+  <rect x="555" y="405" width="230" height="174" rx="9" fill="#ecfdf5" stroke="#047857" stroke-width="3"/>
+  <image href="docker-vpn-icon.png" x="577" y="428" width="58" height="58" clip-path="url(#rounded-icon)"/>
+  <text x="651" y="449" class="heading">Local HKU upstream</text>
+  <text x="651" y="473" class="small">Same service started in step 1</text>
+  <rect x="577" y="506" width="186" height="38" rx="6" fill="#ffffff" stroke="#a7f3d0"/>
+  <text x="592" y="530" class="mono">:1080  or  :1088</text>
+  <text x="670" y="562" text-anchor="middle" class="small">Traffic enters OpenConnect here</text>
+
+  <rect x="965" y="405" width="195" height="174" rx="8" fill="#fff1f2" stroke="#e11d48" stroke-width="2"/>
+  <image href="brands/hku-shield.png" x="1028" y="422" width="70" height="70" clip-path="url(#rounded-icon)"/>
+  <text x="1062" y="522" text-anchor="middle" class="heading">HKU resources</text>
+  <text x="1062" y="547" text-anchor="middle" class="small">Library · SSH · desktop</text>
+
+  <rect x="555" y="615" width="230" height="86" rx="8" fill="#fff7ed" stroke="#ea580c" stroke-width="2"/>
+  <text x="670" y="645" text-anchor="middle" class="heading">Other client policies</text>
+  <text x="670" y="676" text-anchor="middle" class="body">DIRECT / existing proxy</text>
+
+  <rect x="855" y="615" width="305" height="86" rx="8" fill="#fefce8" stroke="#ca8a04" stroke-width="2"/>
+  <image href="brands/claude.jpg" x="876" y="630" width="42" height="42" clip-path="url(#rounded-icon)"/>
+  <image href="brands/chatgpt.png" x="950" y="630" width="42" height="42" clip-path="url(#rounded-icon)"/>
+  <image href="brands/codex.png" x="1028" y="630" width="42" height="42" clip-path="url(#rounded-icon)"/>
+  <text x="897" y="691" text-anchor="middle" class="small">Claude</text>
+  <text x="971" y="691" text-anchor="middle" class="small">ChatGPT</text>
+  <text x="1049" y="691" text-anchor="middle" class="small">Codex</text>
+  <text x="1120" y="657" text-anchor="middle" class="body">AI</text>
+  <text x="1120" y="678" text-anchor="middle" class="small">examples</text>
+
+  <path d="M210 477 C235 477 238 451 264 451" class="arrow"/>
+  <path d="M210 554 C235 554 238 586 264 586" class="arrow"/>
+  <path d="M485 451 H555" class="arrow"/>
+  <path d="M485 568 C520 568 520 530 555 530" class="arrow"/>
+  <path d="M785 492 H965" class="arrow"/>
+  <rect x="818" y="460" width="116" height="22" rx="11" fill="#ffffff" stroke="#cbd5e1"/>
+  <text x="876" y="475" text-anchor="middle" class="small">HKU VPN traffic</text>
+  <path d="M485 610 C520 610 520 658 555 658" class="arrow"/>
+  <path d="M785 658 H855" class="arrow"/>
+  <rect x="793" y="626" width="58" height="22" rx="11" fill="#ffffff" stroke="#cbd5e1"/>
+  <text x="822" y="641" text-anchor="middle" class="small">separate</text>
+
+  <rect x="40" y="718" width="1120" height="24" rx="6" fill="#f1f5f9"/>
+  <text x="600" y="735" text-anchor="middle" class="body">With these rules, HKU and AI traffic use independent upstreams and do not interfere with each other</text>
 </svg>
