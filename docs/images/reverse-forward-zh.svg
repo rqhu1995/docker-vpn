@@ -1,0 +1,111 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="620" viewBox="0 0 1200 620" role="img" aria-labelledby="title desc">
+  <title id="title">校园 Coding Agent 的反向 SSH 代理</title>
+  <desc id="desc">客户端先主动建立到学校电脑的 SSH 控制连接。运行时，学校电脑上的进程连接远端回环端口 8152，SSH 把连接带回客户端的 6152 代理端口，再沿原有代理路径访问外部服务。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 8 8" refX="8" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0 0 L8 4 L0 8 Z" fill="#334155"/>
+    </marker>
+    <clipPath id="rounded-icon" clipPathUnits="objectBoundingBox">
+      <rect width="1" height="1" rx="0.18"/>
+    </clipPath>
+    <style>
+      .title { font: 700 28px -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Segoe UI', sans-serif; fill: #0f172a; }
+      .subtitle { font: 400 16px -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Segoe UI', sans-serif; fill: #475569; }
+      .section { font: 700 12px -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Segoe UI', sans-serif; fill: #475569; }
+      .heading { font: 700 18px -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Segoe UI', sans-serif; fill: #0f172a; }
+      .body { font: 500 14px -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Segoe UI', sans-serif; fill: #334155; }
+      .small { font: 500 12px -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Segoe UI', sans-serif; fill: #64748b; }
+      .mono { font: 600 12px ui-monospace, SFMono-Regular, Menlo, monospace; fill: #0f172a; }
+      .tag { font: 700 11px -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Segoe UI', sans-serif; fill: #ffffff; }
+      .arrow { fill: none; stroke: #334155; stroke-width: 2.25; stroke-linecap: round; stroke-linejoin: round; marker-end: url(#arrow); }
+      .setup-arrow { fill: none; stroke: #64748b; stroke-width: 2.25; stroke-linecap: round; stroke-dasharray: 7 6; marker-end: url(#arrow); }
+    </style>
+  </defs>
+
+  <rect x="1" y="1" width="1198" height="618" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="40" y="48" class="title">校园 Coding Agent 的反向 SSH 代理</text>
+  <text x="40" y="76" class="subtitle">控制连接和代理流量在不同阶段沿相反方向传输</text>
+
+  <rect x="40" y="101" width="104" height="24" rx="12" fill="#e2e8f0"/>
+  <text x="92" y="117" text-anchor="middle" class="section">1 · 建立连接</text>
+  <line x1="156" y1="113" x2="1160" y2="113" stroke="#e2e8f0" stroke-width="2"/>
+
+  <rect x="40" y="137" width="280" height="140" rx="9" fill="#ecfdf5" stroke="#059669" stroke-width="2"/>
+  <rect x="58" y="153" width="144" height="24" rx="12" fill="#059669"/>
+  <text x="130" y="169" text-anchor="middle" class="tag">客户端发起 SSH</text>
+  <text x="58" y="204" class="heading">客户端电脑</text>
+  <text x="58" y="227" class="small">主动建立控制连接</text>
+  <rect x="58" y="238" width="244" height="26" rx="6" fill="#ffffff" stroke="#a7f3d0"/>
+  <text x="74" y="256" class="mono">ssh -N campus-host-tunnel</text>
+
+  <rect x="420" y="137" width="360" height="140" rx="9" fill="#f5f3ff" stroke="#7c3aed" stroke-width="2"/>
+  <rect x="442" y="178" width="86" height="58" rx="9" fill="#111827"/>
+  <text x="485" y="214" text-anchor="middle" style="font: 700 17px ui-monospace, SFMono-Regular, Menlo, monospace; fill: #ffffff;">&gt;_ SSH</text>
+  <text x="550" y="199" class="heading">SSH 控制连接</text>
+  <text x="550" y="224" class="small">加密并经 HKU 到达学校电脑</text>
+
+  <rect x="880" y="137" width="280" height="140" rx="9" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+  <image href="brands/hku-shield.png" x="898" y="175" width="64" height="64" clip-path="url(#rounded-icon)"/>
+  <text x="980" y="190" class="heading">学校电脑</text>
+  <text x="980" y="214" class="small">创建远端回环监听</text>
+  <rect x="980" y="228" width="162" height="30" rx="6" fill="#ffffff" stroke="#bfdbfe"/>
+  <text x="994" y="248" class="mono">127.0.0.1:8152</text>
+
+  <path d="M320 207 H416" class="setup-arrow"/>
+  <rect x="337" y="174" width="62" height="22" rx="11" fill="#ffffff" stroke="#cbd5e1"/>
+  <text x="368" y="189" text-anchor="middle" class="small">发起</text>
+  <path d="M780 207 H876" class="setup-arrow"/>
+  <rect x="791" y="174" width="74" height="22" rx="11" fill="#ffffff" stroke="#cbd5e1"/>
+  <text x="828" y="189" text-anchor="middle" class="small">到达 HKU</text>
+
+  <rect x="40" y="302" width="104" height="24" rx="12" fill="#e2e8f0"/>
+  <text x="92" y="318" text-anchor="middle" class="section">2 · 代理流量</text>
+  <line x1="156" y1="314" x2="1160" y2="314" stroke="#e2e8f0" stroke-width="2"/>
+
+  <rect x="40" y="354" width="260" height="190" rx="9" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+  <rect x="58" y="371" width="112" height="24" rx="12" fill="#2563eb"/>
+  <text x="114" y="387" text-anchor="middle" class="tag">远端请求</text>
+  <image href="brands/codex.png" x="58" y="413" width="48" height="48" clip-path="url(#rounded-icon)"/>
+  <text x="122" y="430" class="heading">Coding Agent / Git</text>
+  <text x="122" y="453" class="small">在学校电脑运行</text>
+  <rect x="58" y="485" width="224" height="42" rx="6" fill="#ffffff" stroke="#bfdbfe"/>
+  <text x="72" y="501" class="small">远端代理地址</text>
+  <text x="72" y="519" class="mono">127.0.0.1:8152</text>
+
+  <rect x="350" y="354" width="230" height="190" rx="9" fill="#f5f3ff" stroke="#7c3aed" stroke-width="2"/>
+  <rect x="368" y="371" width="112" height="24" rx="12" fill="#7c3aed"/>
+  <text x="424" y="387" text-anchor="middle" class="tag">反向转发</text>
+  <rect x="425" y="414" width="80" height="54" rx="9" fill="#111827"/>
+  <text x="465" y="448" text-anchor="middle" style="font: 700 16px ui-monospace, SFMono-Regular, Menlo, monospace; fill: #ffffff;">&gt;_ SSH</text>
+  <text x="465" y="496" text-anchor="middle" class="heading">SSH 反向转发</text>
+  <text x="465" y="520" text-anchor="middle" class="small">加密传回，仅绑定回环地址</text>
+
+  <rect x="630" y="354" width="250" height="190" rx="9" fill="#ecfdf5" stroke="#059669" stroke-width="2"/>
+  <rect x="648" y="371" width="112" height="24" rx="12" fill="#059669"/>
+  <text x="704" y="387" text-anchor="middle" class="tag">本地代理</text>
+  <text x="648" y="420" class="heading">现有本地代理</text>
+  <image href="brands/surge.png" x="648" y="437" width="36" height="36" clip-path="url(#rounded-icon)"/>
+  <image href="brands/clash-verge-rev.png" x="694" y="437" width="36" height="36" clip-path="url(#rounded-icon)"/>
+  <text x="744" y="451" class="small">任意兼容</text>
+  <text x="744" y="469" class="small">客户端</text>
+  <rect x="648" y="485" width="214" height="42" rx="6" fill="#ffffff" stroke="#a7f3d0"/>
+  <text x="662" y="501" class="small">代理目标地址</text>
+  <text x="662" y="519" class="mono">127.0.0.1:6152</text>
+
+  <rect x="930" y="354" width="230" height="190" rx="9" fill="#fefce8" stroke="#ca8a04" stroke-width="2"/>
+  <text x="1045" y="392" text-anchor="middle" class="heading">外部服务</text>
+  <image href="brands/claude.jpg" x="958" y="414" width="40" height="40" clip-path="url(#rounded-icon)"/>
+  <image href="brands/chatgpt.png" x="1025" y="414" width="40" height="40" clip-path="url(#rounded-icon)"/>
+  <image href="brands/codex.png" x="1092" y="414" width="40" height="40" clip-path="url(#rounded-icon)"/>
+  <text x="978" y="478" text-anchor="middle" class="small">Claude</text>
+  <text x="1045" y="478" text-anchor="middle" class="small">ChatGPT</text>
+  <text x="1112" y="478" text-anchor="middle" class="small">Codex</text>
+  <text x="1045" y="515" text-anchor="middle" class="small">沿原有出口访问</text>
+
+  <path d="M300 449 H346" class="arrow"/>
+  <path d="M580 449 H626" class="arrow"/>
+  <path d="M880 449 H926" class="arrow"/>
+
+  <rect x="40" y="574" width="1120" height="28" rx="6" fill="#f1f5f9"/>
+  <text x="600" y="593" text-anchor="middle" class="body">学校电脑 :8152 → SSH 反向转发 → 客户端 :6152 → 原有代理路径</text>
+</svg>
