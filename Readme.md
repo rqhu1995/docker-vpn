@@ -21,10 +21,10 @@ traffic is routed, and the host's default route stays unchanged.
 
 ![Docker-VPN exposes the local HKU proxy before applications use it directly or through routing rules](docs/images/split-routing-en.png)
 
-Surge is the recommended and best-documented rules-client example, not a
-dependency. Direct application, SSH, and browser proxy settings work without
-it. Existing direct, AI proxy, and other VPN policies remain the user's own
-routing configuration.
+A rules client is optional, and this integration is not tied to a particular
+product. Applications, SSH, and browsers can use the local proxy directly;
+Clash Verge Rev, Surge, and other compatible clients can reference the same
+upstream while keeping their existing direct, AI proxy, and VPN policies.
 
 The default listeners are:
 
@@ -38,12 +38,12 @@ The default listeners are:
 - [What You Can Do](#what-you-can-do)
 - [Common Workflows](#common-workflows)
 - [How It Works](#how-it-works)
+- [Rules-Client Integration](#rules-client-integration)
 - [Compatibility and Versions](#compatibility-and-versions)
 - [Requirements](#requirements)
 - [Install](#install)
 - [Daily Commands](#daily-commands)
 - [Use the Local Proxies](#use-the-local-proxies)
-- [Optional: Surge Split-Routing Example](#optional-surge-split-routing-example)
 - [SSH and Remote Desktop Through HKU](#ssh-and-remote-desktop-through-hku)
 - [Give a Campus Computer the Local Proxy](#give-a-campus-computer-the-local-proxy)
 - [Advanced Reliability](#advanced-reliability)
@@ -95,6 +95,100 @@ Cisco AnyConnect is the server protocol in this design. The official Cisco
 desktop client is not started for this connection; OpenConnect runs inside the
 container so it cannot replace the host default route.
 
+## Rules-Client Integration
+
+Docker-VPN only provides the local HKU upstream. A rules client is optional and
+may be Clash Verge Rev, Surge, sing-box, Quantumult X, Loon, or another client
+that supports a local SOCKS5/HTTP outbound and ordered rules. Start `hkuvpn` and
+confirm that `1080/1088` are listening before enabling these entries.
+
+Every client must preserve the same order:
+
+1. Keep the HKU VPN control endpoint outside the local HKU upstream. Otherwise
+   the connection tries to enter its own tunnel before that tunnel exists.
+2. Send only exact campus subnets and HKU services to the HKU policy.
+3. Leave all non-HKU rules and the final rule under the existing profile.
+
+### Clash Verge Rev / Mihomo
+
+Clash Verge Rev uses the Mihomo core and supports Merge configurations. Create
+a Merge/extension configuration for the active profile, add the contents of
+[examples/clash-verge.yaml](examples/clash-verge.yaml), then re-enable that
+configuration after editing it. Do not edit the downloaded subscription file;
+subscription refreshes may replace it. See the official
+[Clash Verge Rev Merge guide](https://clashvergerev.com/en/guide/merge) and
+[Mihomo SOCKS](https://wiki.metacubex.one/en/config/proxies/socks/) and
+[HTTP](https://wiki.metacubex.one/en/config/proxies/http/) outbound syntax.
+
+The minimal Merge configuration is:
+
+```yaml
+prepend-proxies:
+  - name: HKU-SOCKS5
+    type: socks5
+    server: 127.0.0.1
+    port: 1080
+    udp: false
+  - name: HKU-HTTP
+    type: http
+    server: 127.0.0.1
+    port: 1088
+
+prepend-proxy-groups:
+  - name: HKU
+    type: select
+    proxies: [HKU-SOCKS5, HKU-HTTP, DIRECT]
+  - name: HKU-CONTROL
+    type: select
+    proxies: [DIRECT]
+
+prepend-rules:
+  - DOMAIN,vpn2fa.hku.hk,HKU-CONTROL
+  - IP-CIDR,121.37.195.197/32,HKU-CONTROL,no-resolve
+  # - IP-CIDR,192.0.2.0/24,HKU,no-resolve
+  - DOMAIN-SUFFIX,hku.hk,HKU
+  - DOMAIN-SUFFIX,hku.edu.hk,HKU
+```
+
+`prepend-rules` is important because rules inserted after an existing `MATCH`
+rule never run. The commented `192.0.2.0/24` entry is TEST-NET-1 documentation
+space; replace it with the smallest campus subnet you actually need before
+enabling it. If the chosen HKU control endpoint is not directly reachable, add
+the exact name of a working existing policy to `HKU-CONTROL`.
+
+### Surge
+
+Merge [examples/surge.conf](examples/surge.conf) into the existing profile; do
+not replace the whole profile. The equivalent minimal fragment is:
+
+```ini
+[Proxy]
+HKU-SOCKS5 = socks5, 127.0.0.1, 1080
+HKU-HTTP = http, 127.0.0.1, 1088
+
+[Proxy Group]
+HKU = select, HKU-SOCKS5, HKU-HTTP, EXISTING-PROXY, DIRECT
+HKU-CONTROL = select, DIRECT, EXISTING-PROXY
+
+[Rule]
+DOMAIN,vpn2fa.hku.hk,HKU-CONTROL
+IP-CIDR,121.37.195.197/32,HKU-CONTROL,no-resolve
+# IP-CIDR,<exact-campus-subnet>,HKU,no-resolve
+DOMAIN-SUFFIX,hku.hk,HKU
+DOMAIN-SUFFIX,hku.edu.hk,HKU
+```
+
+Replace `EXISTING-PROXY` with the exact policy-group name from the current
+profile. Choose `DIRECT` in `HKU-CONTROL` when the endpoint is directly
+reachable; choose the existing policy only when that route is required and
+works. Never select `HKU-SOCKS5` or `HKU-HTTP` for the control group.
+
+`121.37.195.197/32` is the real mainland endpoint currently selected by
+`hkuvpn cn`, not a sample address. Keep it aligned with
+[`bin/hkuvpn`](bin/hkuvpn) if HKU changes that endpoint. Do not replace the
+commented campus example with all of `10.0.0.0/8`: home, office, and container
+networks commonly use that RFC 1918 range.
+
 ## Compatibility and Versions
 
 | Area | Current support |
@@ -103,7 +197,7 @@ container so it cannot replace the host default route.
 | Linux container runtime | Docker Engine |
 | Windows | Docker Desktop with WSL2; community-tested |
 | Shell | Zsh, Bash, and Fish |
-| Rule-based proxy clients | Surge examples included; the same routing model applies to Clash/Mihomo, sing-box, and similar clients |
+| Rule-based proxy clients | Clash Verge Rev/Mihomo and Surge examples included; the same routing model applies to sing-box and similar clients |
 | OpenConnect in the current `alpine:3.23` image | 9.12 |
 
 OpenConnect runs inside the image, so a Homebrew OpenConnect installation on the
@@ -266,61 +360,6 @@ HKU_SOCKS_PORT=11080
 HKU_HTTP_PORT=11088
 ```
 
-## Optional: Surge Split-Routing Example
-
-You do not need Surge or another rules client to use Docker-VPN. If an
-application supports SOCKS5 or HTTP proxies, it can use `1080` or `1088`
-directly. For users who already want destination-based rules, Surge is the
-recommended documented integration; the same upstream model also works in
-other compatible clients.
-
-Surge itself may route different destinations to `DIRECT`, an external proxy or
-VPN, the local HKU proxy, or any number of other policies. This example defines
-only the HKU-related upstream and rules. Keep every unrelated rule in your
-existing profile, and merge [examples/surge.conf](examples/surge.conf) rather
-than replacing the whole profile. The important order is:
-
-1. Route the VPN control endpoint outside the HKU local proxy. Otherwise the
-   connection tries to enter its own tunnel before that tunnel exists.
-2. Route only exact campus subnets and HKU services to the `HKU` group.
-3. Leave every non-HKU rule and the final rule under the existing profile's
-   policy.
-
-Minimal fragment:
-
-```ini
-[Proxy]
-HKU-SOCKS5 = socks5, 127.0.0.1, 1080
-HKU-HTTP = http, 127.0.0.1, 1088
-
-[Proxy Group]
-HKU = select, HKU-SOCKS5, HKU-HTTP, EXISTING-PROXY, DIRECT
-HKU-CONTROL = select, DIRECT, EXISTING-PROXY
-
-[Rule]
-DOMAIN,vpn2fa.hku.hk,HKU-CONTROL
-IP-CIDR,121.37.195.197/32,HKU-CONTROL,no-resolve
-# IP-CIDR,<exact-campus-subnet>,HKU,no-resolve
-DOMAIN-SUFFIX,hku.hk,HKU
-DOMAIN-SUFFIX,hku.edu.hk,HKU
-```
-
-`121.37.195.197/32` is not a sample address: it is the mainland VPN endpoint
-currently selected by `hkuvpn cn`. Keep this rule aligned with
-[`bin/hkuvpn`](bin/hkuvpn) if HKU changes that endpoint.
-
-By contrast, `10.0.0.0/8` appears here only as a broad RFC 1918 counterexample,
-not as a route to copy. Home, office, and container networks commonly use that
-range. Add only the smallest campus subnet that your service needs.
-
-Choose `DIRECT` in `HKU-CONTROL` when the selected endpoint is directly
-reachable. Choose `EXISTING-PROXY` only when that route is required and works.
-Never select `HKU-SOCKS5` or `HKU-HTTP` for the control group.
-
-The same model works in Clash/Mihomo, sing-box, Quantumult X, Loon, and other
-clients that support a local SOCKS5/HTTP upstream and ordered rules. Names and
-syntax differ; the control-plane and data-plane separation does not.
-
 ## SSH and Remote Desktop Through HKU
 
 For a campus host that is reachable only through HKU, merge and edit
@@ -344,14 +383,14 @@ ssh campus-host
 ```
 
 For remote desktop, route the exact campus destination IP through the HKU group
-in Surge Enhanced Mode, or use a remote-desktop client with SOCKS support. A
-process-name rule is optional and macOS-specific; an exact destination rule is
-more predictable.
+in the rules client's TUN/enhanced mode, or use a remote-desktop client with
+SOCKS support. A process-name rule is optional and platform-specific; an exact
+destination rule is more predictable.
 
 ## Give a Campus Computer the Local Proxy
 
 This is useful when a coding agent runs on a school computer but your paid proxy
-subscription is usable only from the mainland client where Surge/Clash is
+subscription is usable only from the mainland client where the rules client is
 running.
 
 ### Traffic direction
@@ -462,8 +501,8 @@ containers. It is not the first troubleshooting command.
 
 ### Proxy-client independence
 
-Surge-specific automatic reload and policy switching are intentionally not in
-the portable launcher. Users of Clash, sing-box, or no proxy client must still
+Client-specific automatic reload and policy switching are intentionally not in
+the portable launcher. Users of any rules client, or no rules client, must still
 be able to use Docker-VPN. If you automate a client, keep these rules:
 
 - On HKU tunnel failure, move HKU traffic to an explicit fallback such as
@@ -533,8 +572,8 @@ Do not treat `autossh` or `colima status` alone as an end-to-end health check.
 ## Portable Core and Optional Automation
 
 The launcher, shell wrappers, routing examples, and container entrypoint are the
-portable core of Docker-VPN. They do not require Surge, tmux, or a particular
-terminal application.
+portable core of Docker-VPN. They do not require a rules client, tmux, or a
+particular terminal application.
 
 Users who need unattended or long-running operation can add proxy-client CLI
 automation, tmux monitoring, system services such as a macOS LaunchAgent, and

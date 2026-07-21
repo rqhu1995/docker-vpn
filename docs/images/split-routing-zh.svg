@@ -29,16 +29,16 @@
   <text x="84" y="117" text-anchor="middle" class="section">配置阶段</text>
   <line x1="140" y1="113" x2="1160" y2="113" stroke="#e2e8f0" stroke-width="2"/>
 
-  <rect x="40" y="143" width="420" height="184" rx="9" fill="#ecfdf5" stroke="#047857" stroke-width="3"/>
-  <rect x="61" y="160" width="154" height="24" rx="12" fill="#047857"/>
-  <text x="138" y="176" text-anchor="middle" style="font: 700 11px -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Segoe UI', sans-serif; fill: #ffffff;">1 · 启动 DOCKER-VPN</text>
-  <image href="docker-vpn-icon.png" x="62" y="208" width="76" height="76" clip-path="url(#rounded-icon)"/>
-  <text x="158" y="211" class="heading" style="font-size: 21px;">Docker-VPN / OpenConnect</text>
-  <text x="158" y="235" class="small">隧道与本地监听端口就绪</text>
-  <rect x="158" y="248" width="274" height="30" rx="6" fill="#ffffff" stroke="#a7f3d0"/>
-  <text x="174" y="268" class="mono">SOCKS5  127.0.0.1:1080</text>
-  <rect x="158" y="284" width="274" height="30" rx="6" fill="#ffffff" stroke="#a7f3d0"/>
-  <text x="174" y="304" class="mono">HTTP    127.0.0.1:1088</text>
+  <rect x="40" y="133" width="420" height="194" rx="9" fill="#ecfdf5" stroke="#047857" stroke-width="3"/>
+  <rect x="61" y="150" width="154" height="24" rx="12" fill="#047857"/>
+  <text x="138" y="166" text-anchor="middle" style="font: 700 11px -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Segoe UI', sans-serif; fill: #ffffff;">1 · 启动 DOCKER-VPN</text>
+  <image href="docker-vpn-icon.png" x="62" y="200" width="64" height="64" clip-path="url(#rounded-icon)"/>
+  <text x="145" y="203" class="heading" style="font-size: 20px;">Docker-VPN / OpenConnect</text>
+  <text x="145" y="226" class="small">隧道与本地监听端口就绪</text>
+  <rect x="145" y="240" width="287" height="30" rx="6" fill="#ffffff" stroke="#a7f3d0"/>
+  <text x="161" y="260" class="mono">SOCKS5  127.0.0.1:1080</text>
+  <rect x="145" y="277" width="287" height="30" rx="6" fill="#ffffff" stroke="#a7f3d0"/>
+  <text x="161" y="297" class="mono">HTTP    127.0.0.1:1088</text>
 
   <path d="M460 230 H510" class="setup-arrow"/>
   <rect x="470" y="197" width="48" height="22" rx="11" fill="#ffffff" stroke="#cbd5e1"/>
@@ -57,10 +57,10 @@
   <circle cx="868" cy="219" r="15" fill="#2563eb"/>
   <text x="868" y="224" text-anchor="middle" style="font: 700 13px -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Segoe UI', sans-serif; fill: #ffffff;">B</text>
   <text x="893" y="225" class="heading">规则客户端设置</text>
-  <image href="brands/surge.png" x="862" y="248" width="38" height="38" clip-path="url(#rounded-icon)"/>
-  <image href="brands/clash-verge-rev.png" x="910" y="248" width="38" height="38" clip-path="url(#rounded-icon)"/>
+  <image href="brands/surge.png" x="862" y="247" width="40" height="40" clip-path="url(#rounded-icon)"/>
+  <image href="brands/clash-verge-rev.png" x="912" y="247" width="40" height="40" clip-path="url(#rounded-icon)"/>
   <text x="965" y="263" class="body">添加 HKU 本地上游</text>
-  <text x="965" y="284" class="small">Surge 是本文推荐示例</text>
+  <text x="965" y="284" class="small">Surge · Clash · 其他客户端</text>
 
   <rect x="40" y="355" width="150" height="24" rx="12" fill="#e2e8f0"/>
   <text x="115" y="371" text-anchor="middle" class="section">配置完成后的流量</text>
@@ -68,68 +68,66 @@
 
   <rect x="40" y="421" width="170" height="206" rx="8" fill="#f8fafc" stroke="#94a3b8" stroke-width="2"/>
   <text x="125" y="453" text-anchor="middle" class="heading">应用请求</text>
-  <circle cx="76" cy="502" r="22" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.5"/>
-  <circle cx="76" cy="502" r="11" fill="none" stroke="#0284c7" stroke-width="2"/>
-  <path d="M65 502 H87 M76 491 C70 497 70 507 76 513 M76 491 C82 497 82 507 76 513" fill="none" stroke="#0284c7" stroke-width="1.5"/>
-  <rect x="103" y="480" width="44" height="44" rx="8" fill="#111827"/>
+  <circle cx="76" cy="502" r="20" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.5"/>
+  <circle cx="76" cy="502" r="10" fill="none" stroke="#0284c7" stroke-width="2"/>
+  <path d="M66 502 H86 M76 492 C71 497 71 507 76 512 M76 492 C81 497 81 507 76 512" fill="none" stroke="#0284c7" stroke-width="1.5"/>
+  <rect x="105" y="482" width="40" height="40" rx="8" fill="#111827"/>
   <text x="125" y="508" text-anchor="middle" style="font: 700 14px ui-monospace, SFMono-Regular, Menlo, monospace; fill: #ffffff;">&gt;_</text>
-  <image href="brands/windows-app.png" x="158" y="480" width="44" height="44" clip-path="url(#rounded-icon)"/>
+  <image href="brands/windows-app.png" x="160" y="482" width="40" height="40" clip-path="url(#rounded-icon)"/>
   <text x="125" y="558" text-anchor="middle" class="body">使用上方设置</text>
   <text x="125" y="581" text-anchor="middle" class="small">处理不同目标</text>
 
-  <rect x="264" y="405" width="221" height="92" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="2"/>
-  <circle cx="291" cy="435" r="15" fill="#475569"/>
-  <text x="291" y="440" text-anchor="middle" style="font: 700 13px -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Segoe UI', sans-serif; fill: #ffffff;">A</text>
-  <text x="316" y="441" class="heading">已配置的应用</text>
-  <text x="287" y="473" class="small">需要 HKU 时使用应用代理设置</text>
+  <rect x="250" y="405" width="235" height="92" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="2"/>
+  <circle cx="277" cy="435" r="15" fill="#475569"/>
+  <text x="277" y="440" text-anchor="middle" style="font: 700 13px -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Segoe UI', sans-serif; fill: #ffffff;">A</text>
+  <text x="302" y="441" class="heading">已配置的应用</text>
+  <text x="273" y="473" class="small">需要 HKU 时使用应用代理设置</text>
 
-  <rect x="264" y="528" width="221" height="116" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
-  <circle cx="291" cy="558" r="15" fill="#2563eb"/>
-  <text x="291" y="563" text-anchor="middle" style="font: 700 13px -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Segoe UI', sans-serif; fill: #ffffff;">B</text>
-  <text x="316" y="564" class="heading">Surge / Clash</text>
-  <image href="brands/surge.png" x="287" y="586" width="38" height="38" clip-path="url(#rounded-icon)"/>
-  <image href="brands/clash-verge-rev.png" x="337" y="586" width="38" height="38" clip-path="url(#rounded-icon)"/>
-  <text x="392" y="601" class="body">执行规则</text>
-  <text x="392" y="622" class="small">选择不同上游</text>
+  <rect x="250" y="528" width="235" height="116" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+  <circle cx="277" cy="558" r="15" fill="#2563eb"/>
+  <text x="277" y="563" text-anchor="middle" style="font: 700 13px -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Segoe UI', sans-serif; fill: #ffffff;">B</text>
+  <text x="302" y="564" class="heading">规则客户端</text>
+  <image href="brands/surge.png" x="273" y="580" width="40" height="40" clip-path="url(#rounded-icon)"/>
+  <image href="brands/clash-verge-rev.png" x="323" y="580" width="40" height="40" clip-path="url(#rounded-icon)"/>
+  <text x="380" y="593" class="body">执行规则</text>
+  <text x="380" y="616" class="small">选择上游</text>
 
-  <rect x="555" y="405" width="230" height="174" rx="9" fill="#ecfdf5" stroke="#047857" stroke-width="3"/>
-  <image href="docker-vpn-icon.png" x="577" y="428" width="58" height="58" clip-path="url(#rounded-icon)"/>
-  <text x="651" y="449" class="heading">HKU 本地上游</text>
-  <text x="651" y="473" class="small">即第一步启动的同一个服务</text>
-  <rect x="577" y="506" width="186" height="38" rx="6" fill="#ffffff" stroke="#a7f3d0"/>
-  <text x="592" y="530" class="mono">:1080  或  :1088</text>
-  <text x="670" y="562" text-anchor="middle" class="small">流量在这里进入 OpenConnect</text>
+  <rect x="540" y="405" width="280" height="174" rx="9" fill="#ecfdf5" stroke="#047857" stroke-width="3"/>
+  <image href="docker-vpn-icon.png" x="560" y="424" width="64" height="64" clip-path="url(#rounded-icon)"/>
+  <text x="640" y="445" class="heading">HKU 本地上游</text>
+  <text x="640" y="470" class="small">即第一步启动的同一个服务</text>
+  <rect x="560" y="505" width="240" height="38" rx="6" fill="#ffffff" stroke="#a7f3d0"/>
+  <text x="580" y="529" class="mono">:1080  或  :1088</text>
+  <text x="680" y="562" text-anchor="middle" class="small">流量在这里进入 OpenConnect</text>
 
-  <rect x="965" y="405" width="195" height="174" rx="8" fill="#fff1f2" stroke="#e11d48" stroke-width="2"/>
-  <image href="brands/hku-shield.png" x="1028" y="422" width="70" height="70" clip-path="url(#rounded-icon)"/>
-  <text x="1062" y="522" text-anchor="middle" class="heading">HKU 资源</text>
-  <text x="1062" y="547" text-anchor="middle" class="small">图书馆 · SSH · 远程桌面</text>
+  <rect x="950" y="405" width="210" height="174" rx="8" fill="#fff1f2" stroke="#e11d48" stroke-width="2"/>
+  <image href="brands/hku-shield.png" x="1023" y="422" width="64" height="64" clip-path="url(#rounded-icon)"/>
+  <text x="1055" y="522" text-anchor="middle" class="heading">HKU 资源</text>
+  <text x="1055" y="547" text-anchor="middle" class="small">图书馆 · SSH · 远程桌面</text>
 
-  <rect x="555" y="615" width="230" height="86" rx="8" fill="#fff7ed" stroke="#ea580c" stroke-width="2"/>
-  <text x="670" y="645" text-anchor="middle" class="heading">客户端其他策略</text>
-  <text x="670" y="676" text-anchor="middle" class="body">DIRECT / 现有外部代理</text>
+  <rect x="540" y="615" width="280" height="86" rx="8" fill="#fff7ed" stroke="#ea580c" stroke-width="2"/>
+  <text x="680" y="645" text-anchor="middle" class="heading">客户端其他策略</text>
+  <text x="680" y="676" text-anchor="middle" class="body">DIRECT / 现有外部代理</text>
 
-  <rect x="855" y="615" width="305" height="86" rx="8" fill="#fefce8" stroke="#ca8a04" stroke-width="2"/>
-  <image href="brands/claude.jpg" x="876" y="630" width="42" height="42" clip-path="url(#rounded-icon)"/>
-  <image href="brands/chatgpt.png" x="950" y="630" width="42" height="42" clip-path="url(#rounded-icon)"/>
-  <image href="brands/codex.png" x="1028" y="630" width="42" height="42" clip-path="url(#rounded-icon)"/>
-  <text x="897" y="691" text-anchor="middle" class="small">Claude</text>
-  <text x="971" y="691" text-anchor="middle" class="small">ChatGPT</text>
-  <text x="1049" y="691" text-anchor="middle" class="small">Codex</text>
-  <text x="1120" y="657" text-anchor="middle" class="body">AI</text>
-  <text x="1120" y="678" text-anchor="middle" class="small">示例服务</text>
+  <rect x="850" y="615" width="310" height="86" rx="8" fill="#fefce8" stroke="#ca8a04" stroke-width="2"/>
+  <image href="brands/claude.jpg" x="870" y="630" width="40" height="40" clip-path="url(#rounded-icon)"/>
+  <image href="brands/chatgpt.png" x="940" y="630" width="40" height="40" clip-path="url(#rounded-icon)"/>
+  <image href="brands/codex.png" x="1010" y="630" width="40" height="40" clip-path="url(#rounded-icon)"/>
+  <text x="890" y="691" text-anchor="middle" class="small">Claude</text>
+  <text x="960" y="691" text-anchor="middle" class="small">ChatGPT</text>
+  <text x="1030" y="691" text-anchor="middle" class="small">Codex</text>
+  <text x="1110" y="657" text-anchor="middle" class="body">AI</text>
+  <text x="1110" y="678" text-anchor="middle" class="small">示例服务</text>
 
-  <path d="M210 477 C235 477 238 451 264 451" class="arrow"/>
-  <path d="M210 554 C235 554 238 586 264 586" class="arrow"/>
-  <path d="M485 451 H555" class="arrow"/>
-  <path d="M485 568 C520 568 520 530 555 530" class="arrow"/>
-  <path d="M785 492 H965" class="arrow"/>
-  <rect x="818" y="460" width="116" height="22" rx="11" fill="#ffffff" stroke="#cbd5e1"/>
-  <text x="876" y="475" text-anchor="middle" class="small">HKU VPN 流量</text>
-  <path d="M485 610 C520 610 520 658 555 658" class="arrow"/>
-  <path d="M785 658 H855" class="arrow"/>
-  <rect x="793" y="626" width="58" height="22" rx="11" fill="#ffffff" stroke="#cbd5e1"/>
-  <text x="822" y="641" text-anchor="middle" class="small">独立</text>
+  <path d="M210 477 C230 477 232 451 250 451" class="arrow"/>
+  <path d="M210 554 C230 554 232 586 250 586" class="arrow"/>
+  <path d="M485 451 H540" class="arrow"/>
+  <path d="M485 568 C515 568 515 530 540 530" class="arrow"/>
+  <path d="M820 492 H950" class="arrow"/>
+  <rect x="827" y="460" width="116" height="22" rx="11" fill="#ffffff" stroke="#cbd5e1"/>
+  <text x="885" y="475" text-anchor="middle" class="small">HKU VPN 流量</text>
+  <path d="M485 630 C515 630 515 658 540 658" class="arrow"/>
+  <path d="M820 658 H850" class="arrow"/>
 
   <rect x="40" y="718" width="1120" height="24" rx="6" fill="#f1f5f9"/>
   <text x="600" y="735" text-anchor="middle" class="body">按图示规则，HKU 与 AI 流量使用彼此独立的上游，互不干扰</text>

@@ -1,0 +1,41 @@
+# Clash Verge Rev / Mihomo Merge configuration.
+# Add this as a Merge/extension config; do not replace or directly edit the
+# downloaded subscription profile.
+
+prepend-proxies:
+  - name: HKU-SOCKS5
+    type: socks5
+    server: 127.0.0.1
+    port: 1080
+    udp: false
+  - name: HKU-HTTP
+    type: http
+    server: 127.0.0.1
+    port: 1088
+
+prepend-proxy-groups:
+  - name: HKU
+    type: select
+    proxies:
+      - HKU-SOCKS5
+      - HKU-HTTP
+      - DIRECT
+  - name: HKU-CONTROL
+    type: select
+    proxies:
+      - DIRECT
+      # Add the exact name of an existing proxy group here only when the
+      # selected HKU endpoint cannot be reached directly.
+
+prepend-rules:
+  # The VPN control connection must stay outside the HKU local proxy.
+  - DOMAIN,vpn2fa.hku.hk,HKU-CONTROL
+  # Real mainland endpoint selected by `hkuvpn cn`; keep it aligned with
+  # bin/hkuvpn if HKU changes the endpoint.
+  - IP-CIDR,121.37.195.197/32,HKU-CONTROL,no-resolve
+
+  # Add only the campus subnets and services you actually use. TEST-NET-1 is
+  # documentation space; replace the example before enabling it.
+  # - IP-CIDR,192.0.2.0/24,HKU,no-resolve
+  - DOMAIN-SUFFIX,hku.hk,HKU
+  - DOMAIN-SUFFIX,hku.edu.hk,HKU
