@@ -66,7 +66,7 @@
   <rect x="58" y="371" width="136" height="24" rx="12" fill="#2563eb"/>
   <text x="126" y="387" text-anchor="middle" class="tag">REMOTE REQUEST</text>
   <image href="brands/codex.png" x="58" y="413" width="48" height="48" clip-path="url(#rounded-icon)"/>
-  <text x="122" y="430" class="heading">Campus coding agent</text>
+  <text x="122" y="430" class="heading">Campus agent</text>
   <text x="122" y="453" class="small">Codex · Copilot · Git</text>
   <rect x="58" y="485" width="224" height="42" rx="6" fill="#ffffff" stroke="#bfdbfe"/>
   <text x="72" y="501" class="small">Remote proxy</text>
