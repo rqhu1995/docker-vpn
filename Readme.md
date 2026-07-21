@@ -395,7 +395,7 @@ running.
 
 ### Traffic direction
 
-![Reverse SSH proxy path from a campus coding agent to the client proxy](docs/images/reverse-forward-en.png)
+![Reverse SSH proxy path from a campus coding agent to the client proxy](docs/images/reverse-proxy-flow-en.png)
 
 Although the option is named `RemoteForward`, the SSH control connection still
 starts on the client. `-R` creates a listener on the remote computer and carries

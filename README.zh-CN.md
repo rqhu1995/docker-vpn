@@ -326,7 +326,7 @@ ssh campus-host
 
 ### 流量方向
 
-![学校电脑上的 Coding Agent 通过 Reverse SSH 使用客户端代理](docs/images/reverse-forward-zh.png)
+![学校电脑上的 Coding Agent 通过 Reverse SSH 使用客户端代理](docs/images/reverse-proxy-flow-zh.png)
 
 虽然选项叫 `RemoteForward`，SSH 控制连接仍由客户端主动建立。`-R` 在远端电脑创建监听端口，再把每个连接经 SSH 带回客户端可见的目标地址。
 
