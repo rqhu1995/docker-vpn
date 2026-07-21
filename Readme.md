@@ -18,11 +18,7 @@ what uses HKU. The host's default route stays unchanged.
 > **Quick start:** run `hkuvpn`, enter the current six-digit MFA code, then use
 > SOCKS5 `127.0.0.1:1080` or HTTP `127.0.0.1:1088`.
 
-```text
-normal Internet / existing proxy client --------------------> external sites
-                                    |
-application -> 127.0.0.1:1080/1088 -> Docker -> OpenConnect -> HKU resources
-```
+![Selective routing architecture showing separate HKU and normal network paths](docs/images/split-routing-en.svg)
 
 The default listeners are:
 
@@ -79,18 +75,12 @@ your normal Internet proxy, or bypass an organization's acceptable-use policy.
 
 ## How It Works
 
-```text
-Mac/Linux host
-  |
-  +-- Surge/Clash/other proxy on :6152 ---------> normal external route
-  |
-  +-- Colima or Docker Desktop
-        |
-        +-- vpn-hku container
-              +-- OpenConnect -> HKU AnyConnect endpoint -> tun0
-              +-- pproxy SOCKS5 :1080 -> host 127.0.0.1:1080
-              +-- pproxy HTTP   :1088 -> host 127.0.0.1:1088
-```
+1. The browser, terminal, SSH configuration, or a rule-based proxy client
+   decides whether a destination needs HKU.
+2. Selected traffic enters the loopback SOCKS5 or HTTP listener and reaches the
+   `vpn-hku` container.
+3. OpenConnect carries that traffic through the HKU AnyConnect tunnel. All
+   other traffic keeps its original direct or proxy route.
 
 Cisco AnyConnect is the server protocol in this design. The official Cisco
 desktop client is not started for this connection; OpenConnect runs inside the
@@ -342,13 +332,7 @@ running.
 
 ### Traffic direction
 
-```text
-campus Codex/Copilot
-  -> remote 127.0.0.1:8152
-  -> encrypted SSH reverse forward
-  -> client 127.0.0.1:6152 (existing mixed proxy)
-  -> existing paid proxy route
-```
+![Reverse SSH proxy path from a campus coding agent to the client proxy](docs/images/reverse-ssh-en.svg)
 
 Although the option is named `RemoteForward`, the SSH control connection still
 starts on the client. `-R` creates a listener on the remote computer and carries

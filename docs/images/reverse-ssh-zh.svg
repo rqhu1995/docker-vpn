@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="520" viewBox="0 0 1200 520" role="img" aria-labelledby="title desc">
+  <title id="title">为学校电脑上的 Coding Agent 提供反向 SSH 代理</title>
+  <desc id="desc">学校电脑上的 Coding Agent 连接远端回环端口 8152。SSH 把流量带回客户端的 6152 代理端口，再访问外部服务。</desc>
+  <defs>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#2563eb"/>
+    </marker>
+    <marker id="arrow-violet" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#7c3aed"/>
+    </marker>
+    <style>
+      .title { font: 700 28px -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Segoe UI', sans-serif; fill: #0f172a; }
+      .subtitle { font: 400 16px -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Segoe UI', sans-serif; fill: #475569; }
+      .heading { font: 700 18px -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Segoe UI', sans-serif; fill: #0f172a; }
+      .body { font: 500 14px -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Segoe UI', sans-serif; fill: #334155; }
+      .small { font: 500 12px -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Segoe UI', sans-serif; fill: #64748b; }
+      .mono { font: 600 13px ui-monospace, SFMono-Regular, Menlo, monospace; fill: #0f172a; }
+    </style>
+  </defs>
+
+  <rect x="1" y="1" width="1198" height="518" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="40" y="48" class="title">为学校电脑上的 Coding Agent 提供反向 SSH 代理</text>
+  <text x="40" y="76" class="subtitle">客户端主动建立 SSH 会话，远端代理流量随后沿隧道返回客户端</text>
+
+  <rect x="40" y="120" width="330" height="300" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+  <text x="70" y="157" class="heading">学校电脑</text>
+  <text x="70" y="181" class="small">HKU 校园网络</text>
+  <rect x="70" y="215" width="270" height="70" rx="6" fill="#ffffff" stroke="#93c5fd"/>
+  <rect x="88" y="233" width="34" height="34" rx="5" fill="#2563eb"/>
+  <path d="M97 243 H113 M97 250 H113 M97 257 H108" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
+  <text x="138" y="244" class="body">Codex · Copilot · Git</text>
+  <text x="138" y="266" class="small">进程实际在远端运行</text>
+  <rect x="70" y="310" width="270" height="75" rx="6" fill="#dbeafe"/>
+  <text x="92" y="338" class="body">远端回环监听</text>
+  <text x="92" y="364" class="mono">127.0.0.1:8152</text>
+
+  <rect x="455" y="170" width="285" height="190" rx="8" fill="#f5f3ff" stroke="#7c3aed" stroke-width="2"/>
+  <path d="M510 253 C535 218 565 218 590 253 C615 288 645 288 680 243" fill="none" stroke="#7c3aed" stroke-width="8" stroke-linecap="round" stroke-dasharray="4 16"/>
+  <text x="598" y="310" text-anchor="middle" class="heading">加密 SSH 隧道</text>
+  <text x="598" y="335" text-anchor="middle" class="small">RemoteForward，仅绑定回环地址</text>
+
+  <rect x="825" y="120" width="250" height="300" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="2"/>
+  <text x="855" y="157" class="heading">客户端电脑</text>
+  <text x="855" y="181" class="small">例如位于中国大陆</text>
+  <rect x="855" y="225" width="190" height="105" rx="6" fill="#ffffff" stroke="#6ee7b7"/>
+  <text x="950" y="254" text-anchor="middle" class="body">Surge / Clash</text>
+  <text x="950" y="278" text-anchor="middle" class="small">现有混合代理</text>
+  <text x="950" y="306" text-anchor="middle" class="mono">127.0.0.1:6152</text>
+  <text x="950" y="371" text-anchor="middle" class="body">原有付费代理路径</text>
+
+  <rect x="1110" y="215" width="55" height="100" rx="8" fill="#fff7ed" stroke="#ea580c" stroke-width="2"/>
+  <circle cx="1138" cy="245" r="15" fill="#ea580c"/>
+  <path d="M1125 245 H1151 M1138 232 C1130 239 1130 251 1138 258 M1138 232 C1146 239 1146 251 1138 258" fill="none" stroke="#ffffff" stroke-width="1.5"/>
+  <text x="1138" y="338" text-anchor="middle" class="small">外部</text>
+  <text x="1138" y="354" text-anchor="middle" class="small">服务</text>
+
+  <path d="M825 205 C700 112 485 112 370 205" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#arrow-blue)"/>
+  <text x="598" y="122" text-anchor="middle" class="small">1 · 客户端经 HKU 主动建立 SSH 控制连接</text>
+
+  <path d="M340 347 H455" fill="none" stroke="#7c3aed" stroke-width="4" marker-end="url(#arrow-violet)"/>
+  <path d="M740 347 H855" fill="none" stroke="#7c3aed" stroke-width="4" marker-end="url(#arrow-violet)"/>
+  <path d="M1045 277 H1110" fill="none" stroke="#7c3aed" stroke-width="4" marker-end="url(#arrow-violet)"/>
+  <text x="598" y="397" text-anchor="middle" class="body">2 · Coding Agent 流量经 Reverse Forward 返回客户端</text>
+
+  <rect x="40" y="456" width="1125" height="34" rx="6" fill="#f1f5f9"/>
+  <text x="602" y="478" text-anchor="middle" class="body">远端 :8152 → 加密 SSH → 客户端 :6152 → 原有代理路径</text>
+</svg>

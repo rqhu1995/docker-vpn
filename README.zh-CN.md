@@ -10,11 +10,7 @@
 
 > **快速使用：** 运行 `hkuvpn`，输入 Authenticator 当前六位验证码，然后使用 SOCKS5 `127.0.0.1:1080` 或 HTTP `127.0.0.1:1088`。
 
-```text
-普通网络 / 已有代理客户端 -------------------------------> 外部网站
-                              |
-应用 -> 127.0.0.1:1080/1088 -> Docker -> OpenConnect -> HKU 资源
-```
+![选择性分流架构：HKU 路径与普通网络路径相互独立](docs/images/split-routing-zh.svg)
 
 默认监听端口：
 
@@ -65,18 +61,9 @@
 
 ## 工作原理
 
-```text
-Mac/Linux 主机
-  |
-  +-- Surge/Clash/其他代理 :6152 -------------> 普通外部网络
-  |
-  +-- Colima 或 Docker Desktop
-        |
-        +-- vpn-hku 容器
-              +-- OpenConnect -> HKU AnyConnect 入口 -> tun0
-              +-- pproxy SOCKS5 :1080 -> 主机 127.0.0.1:1080
-              +-- pproxy HTTP   :1088 -> 主机 127.0.0.1:1088
-```
+1. 浏览器、命令行、SSH 配置或规则代理客户端先判断目标是否需要 HKU。
+2. 被选中的流量进入本机 SOCKS5 或 HTTP 监听端口，再到达 `vpn-hku` 容器。
+3. OpenConnect 把这些流量送入 HKU AnyConnect 隧道；其余流量继续使用原来的直连或代理路径。
 
 这里的 Cisco AnyConnect 指服务端协议。HKU 连接并不启动 Cisco 官方桌面客户端，而是由容器内的 OpenConnect 建立，因此不会修改主机的全局默认路由。
 
@@ -298,13 +285,7 @@ ssh campus-host
 
 ### 流量方向
 
-```text
-学校电脑上的 Codex/Copilot
-  -> 远端 127.0.0.1:8152
-  -> 加密的 SSH Remote Forward
-  -> 客户端 127.0.0.1:6152（已有混合代理）
-  -> 原有付费代理路径
-```
+![学校电脑上的 Coding Agent 通过 Reverse SSH 使用客户端代理](docs/images/reverse-ssh-zh.svg)
 
 虽然选项叫 `RemoteForward`，SSH 控制连接仍由客户端主动建立。`-R` 在远端电脑创建监听端口，再把每个连接经 SSH 带回客户端可见的目标地址。
 

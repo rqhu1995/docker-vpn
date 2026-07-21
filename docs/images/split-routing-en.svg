@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="560" viewBox="0 0 1200 560" role="img" aria-labelledby="title desc">
+  <title id="title">Docker-VPN selective routing architecture</title>
+  <desc id="desc">Applications pass through routing rules. HKU traffic enters the Docker OpenConnect tunnel while all other traffic keeps using the normal or existing proxy path.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#334155"/>
+    </marker>
+    <style>
+      .title { font: 700 28px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; fill: #0f172a; }
+      .subtitle { font: 400 16px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; fill: #475569; }
+      .heading { font: 700 18px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; fill: #0f172a; }
+      .body { font: 500 14px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; fill: #334155; }
+      .small { font: 500 12px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; fill: #64748b; }
+      .mono { font: 600 13px ui-monospace, SFMono-Regular, Menlo, monospace; fill: #0f172a; }
+      .arrow { fill: none; stroke: #334155; stroke-width: 2.5; marker-end: url(#arrow); }
+    </style>
+  </defs>
+
+  <rect x="1" y="1" width="1198" height="558" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="40" y="48" class="title">Selective routing at a glance</text>
+  <text x="40" y="76" class="subtitle">One computer, two independent network paths</text>
+
+  <rect x="40" y="150" width="190" height="260" rx="8" fill="#f8fafc" stroke="#94a3b8" stroke-width="2"/>
+  <rect x="65" y="180" width="140" height="86" rx="6" fill="#ffffff" stroke="#64748b" stroke-width="2"/>
+  <rect x="78" y="194" width="114" height="54" rx="3" fill="#e2e8f0"/>
+  <path d="M83 278 H187 L199 292 H71 Z" fill="#64748b"/>
+  <text x="135" y="325" text-anchor="middle" class="heading">Apps and tools</text>
+  <text x="135" y="352" text-anchor="middle" class="body">Browser · Terminal</text>
+  <text x="135" y="375" text-anchor="middle" class="body">SSH · Remote desktop</text>
+
+  <rect x="300" y="150" width="220" height="260" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+  <circle cx="334" cy="188" r="15" fill="#2563eb"/>
+  <path d="M327 188 L332 193 L342 181" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="360" y="194" class="heading">Routing rules</text>
+  <rect x="324" y="220" width="172" height="48" rx="5" fill="#ffffff"/>
+  <text x="338" y="240" class="body">HKU domains</text>
+  <text x="338" y="258" class="small">and campus IP ranges</text>
+  <rect x="324" y="282" width="172" height="48" rx="5" fill="#ffffff"/>
+  <text x="338" y="302" class="body">Everything else</text>
+  <text x="338" y="320" class="small">normal rules stay active</text>
+  <text x="410" y="374" text-anchor="middle" class="small">Surge · Clash · app settings</text>
+
+  <rect x="610" y="112" width="245" height="150" rx="8" fill="#fff7ed" stroke="#ea580c" stroke-width="2"/>
+  <circle cx="645" cy="151" r="16" fill="#ea580c"/>
+  <path d="M637 151 H653 M645 143 V159" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
+  <text x="672" y="157" class="heading">Normal path</text>
+  <text x="635" y="194" class="body">Direct connection or</text>
+  <text x="635" y="218" class="body">existing proxy client</text>
+  <text x="635" y="244" class="mono">example :6152</text>
+
+  <rect x="610" y="315" width="245" height="170" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="2"/>
+  <rect x="634" y="343" width="48" height="48" rx="6" fill="#059669"/>
+  <path d="M646 355 H670 V379 H646 Z M652 361 H664 M652 368 H664 M652 375 H660" fill="none" stroke="#ffffff" stroke-width="2"/>
+  <text x="700" y="367" class="heading">Docker-VPN</text>
+  <text x="634" y="420" class="body">OpenConnect inside container</text>
+  <text x="634" y="448" class="mono">SOCKS5 :1080</text>
+  <text x="750" y="448" class="mono">HTTP :1088</text>
+  <text x="634" y="474" class="small">Host default route is unchanged</text>
+
+  <rect x="950" y="112" width="210" height="150" rx="8" fill="#fefce8" stroke="#ca8a04" stroke-width="2"/>
+  <circle cx="1055" cy="158" r="26" fill="#ca8a04"/>
+  <path d="M1033 158 H1077 M1055 136 C1042 147 1042 169 1055 180 M1055 136 C1068 147 1068 169 1055 180" fill="none" stroke="#ffffff" stroke-width="2"/>
+  <text x="1055" y="213" text-anchor="middle" class="heading">External services</text>
+  <text x="1055" y="238" text-anchor="middle" class="small">AI · web · downloads</text>
+
+  <rect x="950" y="315" width="210" height="170" rx="8" fill="#fff1f2" stroke="#e11d48" stroke-width="2"/>
+  <rect x="1026" y="342" width="58" height="58" rx="6" fill="#e11d48"/>
+  <path d="M1038 356 H1072 M1038 366 H1072 M1038 376 H1072 M1038 386 H1058" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
+  <text x="1055" y="433" text-anchor="middle" class="heading">HKU resources</text>
+  <text x="1055" y="458" text-anchor="middle" class="small">Library · intranet · campus hosts</text>
+
+  <path d="M230 280 H300" class="arrow"/>
+  <path d="M520 245 C560 245 565 187 610 187" class="arrow"/>
+  <path d="M520 316 C560 316 565 400 610 400" class="arrow"/>
+  <path d="M855 187 H950" class="arrow"/>
+  <path d="M855 400 H950" class="arrow"/>
+  <text x="548" y="194" class="small">other traffic</text>
+  <text x="545" y="383" class="small">HKU only</text>
+
+  <rect x="40" y="512" width="1120" height="28" rx="6" fill="#f1f5f9"/>
+  <text x="600" y="531" text-anchor="middle" class="body">No repeated AnyConnect on/off switching · No global route takeover</text>
+</svg>
