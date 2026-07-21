@@ -1,6 +1,6 @@
 # <img src="docs/images/docker-vpn-icon.png" width="44" alt="Docker-VPN icon"> Docker-VPN (HKU Edition)
 
-[English](Readme.md) | [简体中文](README.zh-CN.md)
+[Project Website](https://rqhu1995.github.io/docker-vpn/) | [English](Readme.md) | [简体中文](README.zh-CN.md)
 
 Connect to HKU's VPN from a Docker container, then use the tunnel as a local
 proxy so only the applications and destinations you choose go through HKU.

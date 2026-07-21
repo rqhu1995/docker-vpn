@@ -1,6 +1,6 @@
 # <img src="docs/images/docker-vpn-icon.png" width="44" alt="Docker-VPN 图标"> Docker-VPN（HKU 版）
 
-[English](Readme.md) | [简体中文](README.zh-CN.md)
+[项目网站](https://rqhu1995.github.io/docker-vpn/) | [English](Readme.md) | [简体中文](README.zh-CN.md)
 
 在 Docker 容器内连接香港大学 VPN，再把隧道作为本地代理使用，让你自己决定哪些应用、网站和校内服务经过 HKU。
 
