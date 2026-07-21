@@ -18,7 +18,7 @@ what uses HKU. The host's default route stays unchanged.
 > **Quick start:** run `hkuvpn`, enter the current six-digit MFA code, then use
 > SOCKS5 `127.0.0.1:1080` or HTTP `127.0.0.1:1088`.
 
-![Selective routing architecture showing separate HKU and normal network paths](docs/images/split-routing-en.svg)
+![Selective routing architecture showing separate HKU and normal network paths](docs/images/split-routing-en.png)
 
 The default listeners are:
 
@@ -287,9 +287,13 @@ DOMAIN-SUFFIX,hku.hk,HKU
 DOMAIN-SUFFIX,hku.edu.hk,HKU
 ```
 
-Do not blindly route all `10.0.0.0/8` traffic to HKU. Home, office, and container
-networks commonly use that range. Add the smallest campus subnet that your
-service needs.
+`121.37.195.197/32` is not a sample address: it is the mainland VPN endpoint
+currently selected by `hkuvpn cn`. Keep this rule aligned with
+[`bin/hkuvpn`](bin/hkuvpn) if HKU changes that endpoint.
+
+By contrast, `10.0.0.0/8` appears here only as a broad RFC 1918 counterexample,
+not as a route to copy. Home, office, and container networks commonly use that
+range. Add only the smallest campus subnet that your service needs.
 
 Choose `DIRECT` in `HKU-CONTROL` when the selected endpoint is directly
 reachable. Choose `EXISTING-PROXY` only when that route is required and works.
@@ -302,11 +306,13 @@ syntax differ; the control-plane and data-plane separation does not.
 ## SSH and Remote Desktop Through HKU
 
 For a campus host that is reachable only through HKU, merge and edit
-[examples/ssh_config.example](examples/ssh_config.example):
+[examples/ssh_config.example](examples/ssh_config.example). The address
+`192.0.2.10` below belongs to RFC 5737 TEST-NET-1 and cannot be a real campus
+host; replace it with the exact IP assigned to the computer you use.
 
 ```sshconfig
 Host campus-host
-  HostName 10.0.0.10
+  HostName 192.0.2.10
   User yourname
   ProxyCommand nc -X 5 -x 127.0.0.1:1080 %h %p
   ServerAliveInterval 30
@@ -332,7 +338,7 @@ running.
 
 ### Traffic direction
 
-![Reverse SSH proxy path from a campus coding agent to the client proxy](docs/images/reverse-ssh-en.svg)
+![Reverse SSH proxy path from a campus coding agent to the client proxy](docs/images/reverse-ssh-en.png)
 
 Although the option is named `RemoteForward`, the SSH control connection still
 starts on the client. `-R` creates a listener on the remote computer and carries
@@ -342,7 +348,7 @@ each accepted connection back to a destination visible from the client.
 
 ```sshconfig
 Host campus-host-tunnel
-  HostName 10.0.0.10
+  HostName 192.0.2.10
   User yourname
   ProxyCommand nc -X 5 -x 127.0.0.1:1080 %h %p
   RemoteForward 127.0.0.1:8152 127.0.0.1:6152

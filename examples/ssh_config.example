@@ -1,7 +1,9 @@
 # Merge and customize these blocks in ~/.ssh/config.
+# 192.0.2.10 is an RFC 5737 documentation address. Replace both occurrences
+# with the exact IP of the campus computer before using this file.
 
 Host campus-host
-  HostName 10.0.0.10
+  HostName 192.0.2.10
   User yourname
   Port 22
   IdentityFile ~/.ssh/id_ed25519
@@ -14,7 +16,7 @@ Host campus-host
 # This alias also exposes the local proxy-client mixed port on the remote host.
 # The explicit remote 127.0.0.1 binding prevents other campus users from using it.
 Host campus-host-tunnel
-  HostName 10.0.0.10
+  HostName 192.0.2.10
   User yourname
   Port 22
   IdentityFile ~/.ssh/id_ed25519

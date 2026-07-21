@@ -8,6 +8,9 @@
     <marker id="arrow-violet" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
       <path d="M 0 0 L 10 5 L 0 10 z" fill="#7c3aed"/>
     </marker>
+    <clipPath id="rounded-icon" clipPathUnits="objectBoundingBox">
+      <rect width="1" height="1" rx="0.18"/>
+    </clipPath>
     <style>
       .title { font: 700 28px -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Segoe UI', sans-serif; fill: #0f172a; }
       .subtitle { font: 400 16px -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Segoe UI', sans-serif; fill: #475569; }
@@ -25,17 +28,18 @@
   <rect x="40" y="120" width="330" height="300" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
   <text x="70" y="157" class="heading">学校电脑</text>
   <text x="70" y="181" class="small">HKU 校园网络</text>
+  <image href="brands/hku-shield.png" x="296" y="134" width="52" height="52" clip-path="url(#rounded-icon)"/>
   <rect x="70" y="215" width="270" height="70" rx="6" fill="#ffffff" stroke="#93c5fd"/>
-  <rect x="88" y="233" width="34" height="34" rx="5" fill="#2563eb"/>
-  <path d="M97 243 H113 M97 250 H113 M97 257 H108" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
-  <text x="138" y="244" class="body">Codex · Copilot · Git</text>
-  <text x="138" y="266" class="small">进程实际在远端运行</text>
+  <image href="brands/codex.png" x="84" y="224" width="52" height="52" clip-path="url(#rounded-icon)"/>
+  <text x="153" y="244" class="body">Codex · Copilot · Git</text>
+  <text x="153" y="266" class="small">进程实际在远端运行</text>
   <rect x="70" y="310" width="270" height="75" rx="6" fill="#dbeafe"/>
   <text x="92" y="338" class="body">远端回环监听</text>
   <text x="92" y="364" class="mono">127.0.0.1:8152</text>
 
   <rect x="455" y="170" width="285" height="190" rx="8" fill="#f5f3ff" stroke="#7c3aed" stroke-width="2"/>
-  <path d="M510 253 C535 218 565 218 590 253 C615 288 645 288 680 243" fill="none" stroke="#7c3aed" stroke-width="8" stroke-linecap="round" stroke-dasharray="4 16"/>
+  <rect x="542" y="215" width="112" height="58" rx="10" fill="#111827"/>
+  <text x="598" y="251" text-anchor="middle" style="font: 700 18px ui-monospace, SFMono-Regular, Menlo, monospace; fill: #ffffff;">&gt;_ SSH</text>
   <text x="598" y="310" text-anchor="middle" class="heading">加密 SSH 隧道</text>
   <text x="598" y="335" text-anchor="middle" class="small">RemoteForward，仅绑定回环地址</text>
 
@@ -49,12 +53,12 @@
   <text x="950" y="371" text-anchor="middle" class="body">原有付费代理路径</text>
 
   <rect x="1110" y="215" width="55" height="100" rx="8" fill="#fff7ed" stroke="#ea580c" stroke-width="2"/>
-  <circle cx="1138" cy="245" r="15" fill="#ea580c"/>
-  <path d="M1125 245 H1151 M1138 232 C1130 239 1130 251 1138 258 M1138 232 C1146 239 1146 251 1138 258" fill="none" stroke="#ffffff" stroke-width="1.5"/>
+  <image href="brands/chatgpt.png" x="1117" y="224" width="42" height="42" clip-path="url(#rounded-icon)"/>
   <text x="1138" y="338" text-anchor="middle" class="small">外部</text>
   <text x="1138" y="354" text-anchor="middle" class="small">服务</text>
 
   <path d="M825 205 C700 112 485 112 370 205" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#arrow-blue)"/>
+  <rect x="463" y="98" width="270" height="28" rx="14" fill="#ffffff" stroke="#bfdbfe"/>
   <text x="598" y="122" text-anchor="middle" class="small">1 · 客户端经 HKU 主动建立 SSH 控制连接</text>
 
   <path d="M340 347 H455" fill="none" stroke="#7c3aed" stroke-width="4" marker-end="url(#arrow-violet)"/>
