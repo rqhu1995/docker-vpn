@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
+  <title id="title">Docker-VPN selective routing icon</title>
+  <desc id="desc">One route continues directly while selected traffic passes through a protected green tunnel.</desc>
+  <defs>
+    <marker id="arrow-coral" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#fb7185"/>
+    </marker>
+    <marker id="arrow-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#34d399"/>
+    </marker>
+  </defs>
+
+  <rect x="8" y="8" width="240" height="240" rx="52" fill="#0f172a"/>
+  <circle cx="49" cy="128" r="11" fill="#ffffff"/>
+
+  <path d="M50 128 C78 128 82 78 116 78 H207" fill="none" stroke="#fb7185" stroke-width="14" stroke-linecap="round" marker-end="url(#arrow-coral)"/>
+  <path d="M50 128 C78 128 82 178 116 178 H207" fill="none" stroke="#34d399" stroke-width="14" stroke-linecap="round" marker-end="url(#arrow-green)"/>
+
+  <rect x="104" y="112" width="76" height="92" rx="18" fill="#064e3b" stroke="#ecfdf5" stroke-width="6"/>
+  <path d="M125 175 V148 C125 133 136 122 142 122 C148 122 159 133 159 148 V175" fill="none" stroke="#ffffff" stroke-width="9" stroke-linecap="round"/>
+  <circle cx="142" cy="153" r="7" fill="#34d399"/>
+  <path d="M142 160 V176" stroke="#34d399" stroke-width="7" stroke-linecap="round"/>
+</svg>

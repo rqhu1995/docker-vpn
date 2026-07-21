@@ -1,4 +1,4 @@
-# Docker-VPN（HKU 版）
+# <img src="docs/images/docker-vpn-icon.png" width="44" alt="Docker-VPN 图标"> Docker-VPN（HKU 版）
 
 [English](Readme.md) | [简体中文](README.zh-CN.md)
 
@@ -10,7 +10,7 @@
 
 > **快速使用：** 运行 `hkuvpn`，输入 Authenticator 当前六位验证码，然后使用 SOCKS5 `127.0.0.1:1080` 或 HTTP `127.0.0.1:1088`。
 
-![选择性分流架构：HKU 路径与普通网络路径相互独立](docs/images/split-routing-zh.png)
+![Docker-VPN 在直连、现有代理与 HKU 专用路径中的位置](docs/images/split-routing-zh.png)
 
 默认监听端口：
 

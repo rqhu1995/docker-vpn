@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="560" viewBox="0 0 1200 560" role="img" aria-labelledby="title desc">
   <title id="title">Docker-VPN selective routing architecture</title>
-  <desc id="desc">Applications pass through routing rules. HKU traffic enters the Docker OpenConnect tunnel while all other traffic keeps using the normal or existing proxy path.</desc>
+  <desc id="desc">Applications pass through routing rules. Non-HKU traffic either connects directly without a VPN or follows an existing Surge or Clash proxy policy. Only selected HKU traffic enters this project's OpenConnect tunnel.</desc>
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
       <path d="M 0 0 L 10 5 L 0 10 z" fill="#334155"/>
@@ -21,22 +21,22 @@
 
   <rect x="1" y="1" width="1198" height="558" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
   <text x="40" y="48" class="title">Selective routing at a glance</text>
-  <text x="40" y="76" class="subtitle">One computer, two independent network paths</text>
+  <text x="40" y="76" class="subtitle">One computer, three explicit routing outcomes</text>
 
   <rect x="40" y="150" width="210" height="260" rx="8" fill="#f8fafc" stroke="#94a3b8" stroke-width="2"/>
   <text x="145" y="187" text-anchor="middle" class="heading">Apps and tools</text>
-  <circle cx="76" cy="225" r="25" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.5"/>
-  <circle cx="76" cy="225" r="13" fill="none" stroke="#0284c7" stroke-width="2"/>
-  <path d="M63 225 H89 M76 212 C70 219 70 231 76 238 M76 212 C82 219 82 231 76 238" fill="none" stroke="#0284c7" stroke-width="1.5"/>
-  <rect x="119" y="200" width="50" height="50" rx="9" fill="#111827"/>
-  <text x="144" y="232" text-anchor="middle" style="font: 700 16px ui-monospace, SFMono-Regular, Menlo, monospace; fill: #ffffff;">&gt;_</text>
-  <image href="brands/windows-app.png" x="184" y="200" width="50" height="50" clip-path="url(#rounded-icon)"/>
-  <text x="76" y="276" text-anchor="middle" class="small">Browser</text>
-  <text x="144" y="276" text-anchor="middle" class="small">SSH</text>
-  <text x="209" y="276" text-anchor="middle" class="small">Remote</text>
-  <rect x="63" y="310" width="164" height="58" rx="6" fill="#ffffff"/>
-  <text x="145" y="335" text-anchor="middle" class="body">Choose per destination</text>
-  <text x="145" y="357" text-anchor="middle" class="small">No system-wide VPN switch</text>
+  <circle cx="76" cy="245" r="25" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.5"/>
+  <circle cx="76" cy="245" r="13" fill="none" stroke="#0284c7" stroke-width="2"/>
+  <path d="M63 245 H89 M76 232 C70 239 70 251 76 258 M76 232 C82 239 82 251 76 258" fill="none" stroke="#0284c7" stroke-width="1.5"/>
+  <rect x="119" y="220" width="50" height="50" rx="9" fill="#111827"/>
+  <text x="144" y="252" text-anchor="middle" style="font: 700 16px ui-monospace, SFMono-Regular, Menlo, monospace; fill: #ffffff;">&gt;_</text>
+  <image href="brands/windows-app.png" x="184" y="220" width="50" height="50" clip-path="url(#rounded-icon)"/>
+  <text x="76" y="296" text-anchor="middle" class="small">Browser</text>
+  <text x="144" y="296" text-anchor="middle" class="small">SSH</text>
+  <text x="209" y="296" text-anchor="middle" class="small">Remote</text>
+  <rect x="63" y="322" width="164" height="58" rx="6" fill="#ffffff"/>
+  <text x="145" y="347" text-anchor="middle" class="body">Choose per destination</text>
+  <text x="145" y="369" text-anchor="middle" class="small">No system-wide VPN switch</text>
 
   <rect x="300" y="150" width="220" height="260" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
   <circle cx="334" cy="188" r="15" fill="#2563eb"/>
@@ -47,30 +47,37 @@
   <text x="338" y="258" class="small">and campus IP ranges</text>
   <rect x="324" y="282" width="172" height="48" rx="5" fill="#ffffff"/>
   <text x="338" y="302" class="body">Everything else</text>
-  <text x="338" y="320" class="small">normal rules stay active</text>
+  <text x="338" y="320" class="small">existing rules stay active</text>
   <text x="410" y="374" text-anchor="middle" class="small">Surge · Clash · app settings</text>
 
-  <rect x="610" y="112" width="245" height="150" rx="8" fill="#fff7ed" stroke="#ea580c" stroke-width="2"/>
-  <circle cx="645" cy="151" r="16" fill="#ea580c"/>
-  <path d="M637 151 H653 M645 143 V159" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
-  <text x="672" y="157" class="heading">Normal path</text>
-  <text x="635" y="194" class="body">Direct connection or</text>
-  <text x="635" y="218" class="body">existing proxy client</text>
-  <text x="635" y="244" class="mono">example :6152</text>
+  <rect x="610" y="102" width="260" height="178" rx="8" fill="#fff7ed" stroke="#ea580c" stroke-width="2"/>
+  <text x="630" y="132" class="heading">Non-HKU paths</text>
+  <rect x="626" y="143" width="228" height="48" rx="6" fill="#ffffff"/>
+  <circle cx="650" cy="167" r="15" fill="#e0f2fe" stroke="#0284c7"/>
+  <path d="M638 167 H662 M650 155 C644 161 644 173 650 179 M650 155 C656 161 656 173 650 179" fill="none" stroke="#0284c7" stroke-width="1.5"/>
+  <text x="676" y="163" class="body">Direct Internet</text>
+  <text x="676" y="182" class="small">No VPN</text>
+  <rect x="626" y="199" width="228" height="66" rx="6" fill="#ffffff"/>
+  <image href="brands/surge.png" x="638" y="211" width="42" height="42" clip-path="url(#rounded-icon)"/>
+  <image href="brands/clash-verge-rev.png" x="690" y="211" width="42" height="42" clip-path="url(#rounded-icon)"/>
+  <text x="743" y="225" class="body">Existing proxy/VPN</text>
+  <text x="743" y="247" class="small">Surge · Clash · :6152</text>
 
-  <rect x="610" y="315" width="245" height="170" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="2"/>
-  <rect x="634" y="343" width="48" height="48" rx="6" fill="#059669"/>
-  <path d="M646 355 H670 V379 H646 Z M652 361 H664 M652 368 H664 M652 375 H660" fill="none" stroke="#ffffff" stroke-width="2"/>
-  <text x="700" y="367" class="heading">Docker-VPN</text>
-  <text x="634" y="420" class="body">OpenConnect inside container</text>
-  <text x="634" y="448" class="mono">SOCKS5 :1080</text>
-  <text x="750" y="448" class="mono">HTTP :1088</text>
-  <text x="634" y="474" class="small">Host default route is unchanged</text>
+  <rect x="600" y="305" width="280" height="190" rx="12" fill="#d1fae5" opacity="0.7"/>
+  <rect x="610" y="315" width="260" height="170" rx="8" fill="#ecfdf5" stroke="#047857" stroke-width="4"/>
+  <image href="docker-vpn-icon.png" x="630" y="347" width="66" height="66" clip-path="url(#rounded-icon)"/>
+  <rect x="714" y="329" width="120" height="22" rx="11" fill="#047857"/>
+  <text x="774" y="344" text-anchor="middle" style="font: 700 11px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; fill: #ffffff;">THIS PROJECT</text>
+  <text x="714" y="383" class="heading" style="font-size: 22px;">Docker-VPN</text>
+  <text x="634" y="427" class="body">HKU-only OpenConnect tunnel</text>
+  <text x="634" y="453" class="mono">SOCKS5 :1080</text>
+  <text x="758" y="453" class="mono">HTTP :1088</text>
+  <text x="634" y="477" class="small">Host default route is unchanged</text>
 
-  <rect x="950" y="112" width="210" height="150" rx="8" fill="#fefce8" stroke="#ca8a04" stroke-width="2"/>
-  <image href="brands/claude.jpg" x="970" y="128" width="46" height="46" clip-path="url(#rounded-icon)"/>
-  <image href="brands/chatgpt.png" x="1032" y="128" width="46" height="46" clip-path="url(#rounded-icon)"/>
-  <image href="brands/codex.png" x="1094" y="128" width="46" height="46" clip-path="url(#rounded-icon)"/>
+  <rect x="950" y="102" width="210" height="178" rx="8" fill="#fefce8" stroke="#ca8a04" stroke-width="2"/>
+  <image href="brands/claude.jpg" x="970" y="120" width="46" height="46" clip-path="url(#rounded-icon)"/>
+  <image href="brands/chatgpt.png" x="1032" y="120" width="46" height="46" clip-path="url(#rounded-icon)"/>
+  <image href="brands/codex.png" x="1094" y="120" width="46" height="46" clip-path="url(#rounded-icon)"/>
   <text x="993" y="192" text-anchor="middle" class="small">Claude</text>
   <text x="1055" y="192" text-anchor="middle" class="small">ChatGPT</text>
   <text x="1117" y="192" text-anchor="middle" class="small">Codex</text>
@@ -85,15 +92,15 @@
   <text x="1055" y="458" text-anchor="middle" class="small">Library · SSH · remote desktop</text>
 
   <path d="M250 280 H300" class="arrow"/>
-  <path d="M520 245 C560 245 565 187 610 187" class="arrow"/>
+  <path d="M520 245 C560 245 565 191 610 191" class="arrow"/>
   <path d="M520 316 C560 316 565 400 610 400" class="arrow"/>
-  <path d="M855 187 H950" class="arrow"/>
-  <path d="M855 400 H950" class="arrow"/>
+  <path d="M870 191 H950" class="arrow"/>
+  <path d="M870 400 H950" class="arrow"/>
   <rect x="535" y="158" width="72" height="24" rx="12" fill="#ffffff" stroke="#cbd5e1"/>
-  <text x="571" y="174" text-anchor="middle" class="small">other traffic</text>
+  <text x="571" y="174" text-anchor="middle" class="small">not HKU</text>
   <rect x="535" y="359" width="72" height="24" rx="12" fill="#ffffff" stroke="#cbd5e1"/>
   <text x="571" y="375" text-anchor="middle" class="small">HKU only</text>
 
   <rect x="40" y="512" width="1120" height="28" rx="6" fill="#f1f5f9"/>
-  <text x="600" y="531" text-anchor="middle" class="body">No repeated AnyConnect on/off switching · No global route takeover</text>
+  <text x="600" y="531" text-anchor="middle" class="body">Docker-VPN handles only selected HKU traffic · Direct and existing proxy routes stay independent</text>
 </svg>

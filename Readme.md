@@ -1,4 +1,4 @@
-# Docker-VPN (HKU Edition)
+# <img src="docs/images/docker-vpn-icon.png" width="44" alt="Docker-VPN icon"> Docker-VPN (HKU Edition)
 
 [English](Readme.md) | [简体中文](README.zh-CN.md)
 
@@ -18,7 +18,7 @@ what uses HKU. The host's default route stays unchanged.
 > **Quick start:** run `hkuvpn`, enter the current six-digit MFA code, then use
 > SOCKS5 `127.0.0.1:1080` or HTTP `127.0.0.1:1088`.
 
-![Selective routing architecture showing separate HKU and normal network paths](docs/images/split-routing-en.png)
+![Docker-VPN position within direct, existing proxy, and HKU-only network paths](docs/images/split-routing-en.png)
 
 The default listeners are:
 

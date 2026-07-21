@@ -7,6 +7,11 @@ does not imply sponsorship or endorsement.
 - `claude.jpg` is the Claude app icon published by Anthropic through its [Apple App Store listing](https://apps.apple.com/us/app/claude-by-anthropic/id6473753684).
 - `chatgpt.png` and `codex.png` are product icons bundled with the official ChatGPT macOS application and are used in line with the [OpenAI design guidelines](https://openai.com/brand/).
 - `windows-app.png` is the Windows App icon published by Microsoft through its [Apple App Store listing](https://apps.apple.com/us/app/windows-app/id1295203466?mt=12).
+- `surge.png` is the application icon bundled with the official Surge macOS application.
+- `clash-verge-rev.png` is the application icon published by the [Clash Verge Rev project](https://github.com/clash-verge-rev/clash-verge-rev).
 
-HKU, Claude, ChatGPT, Codex, Windows App, and their logos are trademarks or
-other protected marks of their respective owners.
+The Docker-VPN selective-routing icon in the parent directory is original to
+this project and does not incorporate a third-party logo.
+
+HKU, Claude, ChatGPT, Codex, Windows App, Surge, Clash Verge Rev, and their
+logos are trademarks or other protected marks of their respective owners.
