@@ -2,8 +2,8 @@
   <title id="title">先暴露服务，再进行分流</title>
   <desc id="desc">Docker-VPN 先建立 HKU 隧道并暴露本机 1080 和 1088 端口。端口就绪后，应用可以直接引用，也可以通过 Surge 或 Clash 规则引用。运行时，HKU 流量进入 Docker-VPN，AI 流量则可以由独立规则直连或进入现有代理。</desc>
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="#334155"/>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M1 1 L9 5 L1 9" fill="none" stroke="#334155" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
     </marker>
     <clipPath id="rounded-icon" clipPathUnits="objectBoundingBox">
       <rect width="1" height="1" rx="0.18"/>
@@ -16,8 +16,8 @@
       .body { font: 500 14px -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Segoe UI', sans-serif; fill: #334155; }
       .small { font: 500 12px -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Segoe UI', sans-serif; fill: #64748b; }
       .mono { font: 600 12px ui-monospace, SFMono-Regular, Menlo, monospace; fill: #0f172a; }
-      .arrow { fill: none; stroke: #334155; stroke-width: 2.5; marker-end: url(#arrow); }
-      .setup-arrow { fill: none; stroke: #64748b; stroke-width: 2.5; stroke-dasharray: 7 6; marker-end: url(#arrow); }
+      .arrow { fill: none; stroke: #334155; stroke-width: 2.25; stroke-linecap: round; stroke-linejoin: round; marker-end: url(#arrow); }
+      .setup-arrow { fill: none; stroke: #64748b; stroke-width: 2.25; stroke-linecap: round; stroke-dasharray: 7 6; marker-end: url(#arrow); }
     </style>
   </defs>
 
@@ -40,7 +40,7 @@
   <rect x="145" y="277" width="287" height="30" rx="6" fill="#ffffff" stroke="#a7f3d0"/>
   <text x="161" y="297" class="mono">HTTP    127.0.0.1:1088</text>
 
-  <path d="M460 230 H510" class="setup-arrow"/>
+  <path d="M460 230 H514" class="setup-arrow"/>
   <rect x="470" y="197" width="48" height="22" rx="11" fill="#ffffff" stroke="#cbd5e1"/>
   <text x="494" y="212" text-anchor="middle" class="small">就绪</text>
 
@@ -119,15 +119,15 @@
   <text x="1110" y="657" text-anchor="middle" class="body">AI</text>
   <text x="1110" y="678" text-anchor="middle" class="small">示例服务</text>
 
-  <path d="M210 477 C230 477 232 451 250 451" class="arrow"/>
-  <path d="M210 554 C230 554 232 586 250 586" class="arrow"/>
-  <path d="M485 451 H540" class="arrow"/>
-  <path d="M485 568 C515 568 515 530 540 530" class="arrow"/>
-  <path d="M820 492 H950" class="arrow"/>
+  <path d="M210 477 C230 477 232 451 244 451" class="arrow"/>
+  <path d="M210 554 C230 554 232 586 244 586" class="arrow"/>
+  <path d="M485 451 H534" class="arrow"/>
+  <path d="M485 568 C515 568 515 530 534 530" class="arrow"/>
+  <path d="M820 492 H944" class="arrow"/>
   <rect x="827" y="460" width="116" height="22" rx="11" fill="#ffffff" stroke="#cbd5e1"/>
   <text x="885" y="475" text-anchor="middle" class="small">HKU VPN 流量</text>
-  <path d="M485 630 C515 630 515 658 540 658" class="arrow"/>
-  <path d="M820 658 H850" class="arrow"/>
+  <path d="M485 630 C515 630 515 658 534 658" class="arrow"/>
+  <path d="M820 658 H844" class="arrow"/>
 
   <rect x="40" y="718" width="1120" height="24" rx="6" fill="#f1f5f9"/>
   <text x="600" y="735" text-anchor="middle" class="body">按图示规则，HKU 与 AI 流量使用彼此独立的上游，互不干扰</text>
