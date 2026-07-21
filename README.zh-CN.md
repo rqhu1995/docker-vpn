@@ -10,7 +10,7 @@
 
 > **快速使用：** 运行 `hkuvpn`，输入 Authenticator 当前六位验证码，然后使用 SOCKS5 `127.0.0.1:1080` 或 HTTP `127.0.0.1:1088`。
 
-![Docker-VPN 先开放本地 HKU 代理，再由应用直接使用或通过分流规则使用](docs/images/routing-overview-zh.png)
+![Docker-VPN 先开放本地 HKU 代理，再由应用直接使用或通过分流规则使用](docs/images/routing-flow-zh.png)
 
 规则客户端只是可选接入方式，本项目不限定具体产品。应用、SSH 或浏览器可以直接使用本地代理；Clash Verge Rev、Surge 和其他兼容客户端也可以引用同一个上游，同时保留原有的互联网直连、AI 代理和其他 VPN 策略。
 
