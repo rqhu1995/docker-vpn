@@ -16,86 +16,239 @@ application directly at these ports, or reference them from an optional routing
 client such as Surge or Clash. Docker-VPN does not decide how any non-HKU
 traffic is routed, and the host's default route stays unchanged.
 
-> **Quick start:** run `hkuvpn`, enter the current six-digit MFA code, then use
-> SOCKS5 `127.0.0.1:1080` or HTTP `127.0.0.1:1088`.
+> **First-time goal:** follow [Quick Start](#quick-start) until the test command
+> returns HTTP headers through HKU. Configure Clash, Surge, SSH, or remote
+> desktop only after this basic connection works.
+
+## Contents
+
+- [Quick Start](#quick-start)
+- [Use Docker-VPN](#use-docker-vpn)
+- [Remote Access](#remote-access)
+- [Operations and Troubleshooting](#operations-and-troubleshooting)
+- [Project Reference](#project-reference)
+
+## Quick Start
+
+This section is the complete first-run path. You do not need a rules client to
+finish it.
+
+### Before You Begin
+
+- An HKU account allowed to use VPN.
+- Your static HKU Portal PIN and the current Microsoft Authenticator code.
+- `openssl`, available by default on macOS and in common Linux distributions.
+- A Docker runtime. The recommended macOS route is shown below; Docker Desktop,
+  Linux Docker Engine, and Windows WSL2 are also supported.
+
+### 1. Start Docker
+
+Recommended on macOS:
+
+```bash
+brew install colima docker
+colima start --cpu 2 --memory 2 --disk 20 --vm-type vz --mount-type virtiofs
+docker info
+```
+
+Docker Desktop also works. On Linux, install Docker Engine from your
+distribution or from Docker's official instructions. Windows users can run the
+launcher inside WSL2 with Docker Desktop's WSL integration.
+
+### 2. Clone and build
+
+```bash
+git clone https://github.com/rqhu1995/docker-vpn.git ~/docker-vpn
+cd ~/docker-vpn
+docker build -t local/vpn .
+```
+
+### 3. Create private configuration
+
+```bash
+mkdir -p ~/.vpn
+cp ~/docker-vpn/examples/hku.env.example ~/.vpn/hku.env
+printf '%s' 'YOUR_PORTAL_PIN' > ~/.vpn/hku.pass
+chmod 600 ~/.vpn/hku.pass
+```
+
+Replace `YOUR_PORTAL_PIN` before running the third command. This file stores
+your static Portal PIN, not the current six-digit Authenticator code.
+
+Open `~/.vpn/hku.env` in a text editor, for example:
+
+```bash
+nano ~/.vpn/hku.env
+```
+
+Replace the example account:
+
+```ini
+HKU_USER=youruid@connect.hku.hk
+HKU_ENDPOINT=hk
+```
+
+Use the account form HKU assigned to you. In Nano, press `Ctrl+O`, `Enter`, then
+`Ctrl+X` to save and exit. Do not put the static PIN, MFA code, proxy
+subscription, or private key in this repository.
+
+### 4. Connect
+
+Choose one command for your current location:
+
+```bash
+~/docker-vpn/bin/hkuvpn hk    # Hong Kong or overseas
+~/docker-vpn/bin/hkuvpn cn    # mainland China
+```
+
+At `Response:`, enter the current six-digit Authenticator code. Keep this
+terminal open while using the VPN; `Ctrl+C` stops the connection.
+
+### 5. Confirm It Works
+
+Open a second terminal and run:
+
+```bash
+curl -x socks5h://127.0.0.1:1080 -I https://www.hku.hk/
+```
+
+If the command returns HTTP response headers, the HKU proxy is ready. Continue
+to [Use Docker-VPN](#use-docker-vpn) and choose only the integration you need.
+If it fails, go directly to [Troubleshooting](#troubleshooting).
+
+## Use Docker-VPN
+
+### Choose an Integration
+
+Docker-VPN is already usable after Quick Start. The remaining configuration
+depends on what you want to access:
+
+| Goal | Next step |
+|---|---|
+| Use HKU in one browser, terminal command, or application | [Use a Proxy Directly](#use-a-proxy-directly) |
+| Add HKU as one route in Clash Verge Rev, Surge, or another client | [Add a Rules Client](#add-a-rules-client) |
+| Connect to a campus computer | [SSH and Remote Desktop](#ssh-and-remote-desktop) |
+| Give a campus coding agent your existing Internet proxy | [Reverse SSH for a Campus Computer](#reverse-ssh-for-a-campus-computer) |
+| Keep all non-HKU traffic on its current route | Do nothing; those routes remain outside Docker-VPN |
 
 ![Docker-VPN exposes the local HKU proxy before applications use it directly or through routing rules](docs/images/routing-flow-en.png)
 
-A rules client is optional, and this integration is not tied to a particular
-product. Applications, SSH, and browsers can use the local proxy directly;
-Clash Verge Rev, Surge, and other compatible clients can reference the same
-upstream while keeping their existing direct, AI proxy, and VPN policies.
-
-The default listeners are:
+The local listeners are:
 
 | Protocol | Address | Purpose |
 |---|---|---|
 | SOCKS5 | `127.0.0.1:1080` | Preferred application and SSH proxy |
 | HTTP | `127.0.0.1:1088` | HTTP/HTTPS clients without SOCKS support |
 
-## Table of Contents
-
-- [What You Can Do](#what-you-can-do)
-- [Common Workflows](#common-workflows)
-- [How It Works](#how-it-works)
-- [Rules-Client Integration](#rules-client-integration)
-- [Compatibility and Versions](#compatibility-and-versions)
-- [Requirements](#requirements)
-- [Install](#install)
-- [Daily Commands](#daily-commands)
-- [Use the Local Proxies](#use-the-local-proxies)
-- [SSH and Remote Desktop Through HKU](#ssh-and-remote-desktop-through-hku)
-- [Give a Campus Computer the Local Proxy](#give-a-campus-computer-the-local-proxy)
-- [Advanced Reliability](#advanced-reliability)
-- [Troubleshooting](#troubleshooting)
-- [Security](#security)
-- [Portable Core and Optional Automation](#portable-core-and-optional-automation)
-- [Credits and Licensing](#credits-and-licensing)
-
-## What You Can Do
-
-- Open HKU websites and library resources without sending unrelated traffic
-  through the university VPN.
-- Use the local HKU proxy directly from an application, or add it as one upstream
-  in Surge, Clash, sing-box, or another rules client.
-- Reach campus SSH and remote-desktop hosts through the local HKU proxy.
-- Give a coding agent on a campus computer access to the proxy running on your
-  client through a loopback-only SSH reverse forward.
-- Use the same launcher from Zsh, Bash, or Fish on a Colima, Docker Desktop, or
-  native Docker setup.
-- Inspect status, stop the tunnel, or recover the Colima/Docker backend without
-  unnecessarily starting another MFA attempt.
+A rules client is optional. Applications, SSH, and browsers can use these ports
+directly; Clash Verge Rev, Surge, and other compatible clients can reference
+the same upstream while keeping their existing direct, AI proxy, and VPN
+policies.
 
 This project does not turn HKU VPN into a general anonymity service, replace
 your normal Internet proxy, or bypass an organization's acceptable-use policy.
 
-## Common Workflows
+### Install the Short `hkuvpn` Command
 
-| Situation | Recommended mode |
-|---|---|
-| Open HKU library or intranet sites locally | Send only HKU domains to `1080` or `1088` |
-| Reach a campus SSH or remote-desktop host | Route its exact campus IP/subnet through HKU |
-| Keep non-HKU traffic on any direct, proxy, or VPN route | Leave those policies unchanged; Docker-VPN only adds the HKU upstream |
-| Run a coding agent on a campus computer | Reverse-forward the local proxy to remote loopback port `8152` |
-| Both computers are in Hong Kong and the subscription accepts mainland ingress only | Use a supported ingress or move the proxy client to a reachable mainland host; reverse SSH alone cannot change the ingress location |
+Quick Start calls `~/docker-vpn/bin/hkuvpn` directly. For everyday use, install
+the shorter `hkuvpn` command for your shell.
 
-## How It Works
+Zsh:
 
-1. Run `hkuvpn` first. The container establishes the OpenConnect tunnel and
-   exposes the loopback SOCKS5 and HTTP listeners.
-2. After the listeners are ready, enter one of those addresses in an
-   application, SSH configuration, browser, or optional rules client.
-3. During use, requests selected by that configuration reach `1080` or `1088`,
-   enter the container, and travel through the HKU AnyConnect tunnel.
-4. A rules client can simultaneously send every non-HKU request to `DIRECT`, an
-   existing proxy or VPN, or another policy. Those paths do not pass through
-   Docker-VPN unless the user explicitly selects the HKU upstream for them.
+```bash
+printf '\nsource ~/docker-vpn/examples/hkuvpn.zsh\n' >> ~/.zshrc
+source ~/.zshrc
+```
 
-Cisco AnyConnect is the server protocol in this design. The official Cisco
-desktop client is not started for this connection; OpenConnect runs inside the
-container so it cannot replace the host default route.
+Bash:
 
-## Rules-Client Integration
+```bash
+printf '\nsource ~/docker-vpn/examples/hkuvpn.zsh\n' >> ~/.bashrc
+source ~/.bashrc
+```
+
+Fish:
+
+```fish
+mkdir -p ~/.config/fish/functions
+cp ~/docker-vpn/examples/hkuvpn.fish ~/.config/fish/functions/hkuvpn.fish
+fish -n ~/.config/fish/functions/hkuvpn.fish
+```
+
+Do not paste the Zsh function into Fish. Fish does not use `export`,
+`VAR=value command`, POSIX `case`, or POSIX function syntax.
+
+If the clone is elsewhere, set `DOCKER_VPN_HOME`:
+
+```bash
+export DOCKER_VPN_HOME=/path/to/docker-vpn        # Zsh/Bash
+```
+
+```fish
+set -Ux DOCKER_VPN_HOME /path/to/docker-vpn      # Fish
+```
+
+### Daily Commands
+
+```bash
+hkuvpn              # endpoint from ~/.vpn/hku.env
+hkuvpn cn           # mainland-facing HKU endpoint
+hkuvpn hk           # Hong Kong HKU endpoint
+hkuvpn --status
+hkuvpn --stop
+hkuvpn --recover    # repair Docker/Colima only; does not request MFA
+```
+
+At `Response:`, enter the current six-digit Authenticator code. Keep the
+terminal open while using the proxies. `Ctrl+C` stops the foreground container.
+
+Endpoint guidance:
+
+| Argument | Server | Usually appropriate when |
+|---|---|---|
+| `cn` | HKU's mainland-facing address | The client is in mainland China |
+| `hk` | `vpn2fa.hku.hk` | The client is in Hong Kong or overseas |
+
+Reachability is more important than geography. If certificate retrieval or TLS
+fails, test the other endpoint and inspect the route selected by your existing
+proxy client.
+
+### Use a Proxy Directly
+
+Quick checks from a second terminal:
+
+```bash
+curl -x socks5h://127.0.0.1:1080 -I https://www.hku.hk/
+curl -x http://127.0.0.1:1088 -I https://www.hku.hk/
+```
+
+Use `socks5h`, not `socks5`, when DNS should also be resolved through the proxy.
+The published Docker ports are TCP; do not advertise this setup as a general UDP
+proxy.
+
+Per-command proxy examples:
+
+```bash
+ALL_PROXY=socks5h://127.0.0.1:1080 curl https://lib.hku.hk/   # Zsh/Bash
+```
+
+```fish
+env ALL_PROXY=socks5h://127.0.0.1:1080 curl https://lib.hku.hk/
+# Or limit a variable to the current Fish block:
+begin
+    set -lx ALL_PROXY socks5h://127.0.0.1:1080
+    curl https://lib.hku.hk/
+end
+```
+
+Change host ports in `~/.vpn/hku.env` if they conflict:
+
+```ini
+HKU_SOCKS_PORT=11080
+HKU_HTTP_PORT=11088
+```
+
+### Add a Rules Client
 
 Docker-VPN only provides the local HKU upstream. A rules client is optional and
 may be Clash Verge Rev, Surge, sing-box, Quantumult X, Loon, or another client
@@ -109,7 +262,7 @@ Every client must preserve the same order:
 2. Send only exact campus subnets and HKU services to the HKU policy.
 3. Leave all non-HKU rules and the final rule under the existing profile.
 
-### Clash Verge Rev / Mihomo
+#### Clash Verge Rev / Mihomo
 
 Clash Verge Rev uses the Mihomo core and supports Merge configurations. Create
 a Merge/extension configuration for the active profile, add the contents of
@@ -156,7 +309,7 @@ space; replace it with the smallest campus subnet you actually need before
 enabling it. If the chosen HKU control endpoint is not directly reachable, add
 the exact name of a working existing policy to `HKU-CONTROL`.
 
-### Surge
+#### Surge
 
 Merge [examples/surge.conf](examples/surge.conf) into the existing profile; do
 not replace the whole profile. The equivalent minimal fragment is:
@@ -189,178 +342,9 @@ works. Never select `HKU-SOCKS5` or `HKU-HTTP` for the control group.
 commented campus example with all of `10.0.0.0/8`: home, office, and container
 networks commonly use that RFC 1918 range.
 
-## Compatibility and Versions
+## Remote Access
 
-| Area | Current support |
-|---|---|
-| macOS container runtime | Colima or Docker Desktop |
-| Linux container runtime | Docker Engine |
-| Windows | Docker Desktop with WSL2; community-tested |
-| Shell | Zsh, Bash, and Fish |
-| Rule-based proxy clients | Clash Verge Rev/Mihomo and Surge examples included; the same routing model applies to sing-box and similar clients |
-| OpenConnect in the current `alpine:3.23` image | 9.12 |
-
-OpenConnect runs inside the image, so a Homebrew OpenConnect installation on the
-host is not used. The image follows Alpine 3.23's package. Check the
-[official OpenConnect releases](https://gitlab.com/openconnect/openconnect/-/releases)
-when investigating version-specific behavior.
-
-## Requirements
-
-- An HKU account allowed to use VPN.
-- The static HKU Portal PIN and the current Microsoft Authenticator code.
-- Docker Engine, Docker Desktop, or Colima.
-- `openssl`, available by default on macOS and in common Linux distributions.
-- Fish only if you choose the Fish wrapper.
-- `autossh` only for the optional persistent reverse tunnel.
-
-## Install
-
-### 1. Install a Docker runtime
-
-Recommended on macOS:
-
-```bash
-brew install colima docker
-colima start --cpu 2 --memory 2 --disk 20 --vm-type vz --mount-type virtiofs
-docker info
-```
-
-Docker Desktop also works. On Linux, install Docker Engine from your
-distribution or from Docker's official instructions. Windows users can run the
-launcher inside WSL2 with Docker Desktop's WSL integration.
-
-### 2. Clone and build
-
-```bash
-git clone https://github.com/rqhu1995/docker-vpn.git ~/docker-vpn
-cd ~/docker-vpn
-docker build -t local/vpn .
-```
-
-Confirm the version actually installed in the image:
-
-```bash
-docker run --rm --entrypoint openconnect local/vpn --version
-```
-
-### 3. Create private configuration
-
-```bash
-mkdir -p ~/.vpn
-cp ~/docker-vpn/examples/hku.env.example ~/.vpn/hku.env
-printf '%s' 'YOUR_PORTAL_PIN' > ~/.vpn/hku.pass
-chmod 600 ~/.vpn/hku.pass
-```
-
-Edit `~/.vpn/hku.env` and replace the example account:
-
-```ini
-HKU_USER=youruid@connect.hku.hk
-HKU_ENDPOINT=hk
-```
-
-Use the account form HKU assigned to you. Do not put the static PIN, MFA code,
-proxy subscription, or private key in this repository.
-
-### 4. Install the shell wrapper
-
-Zsh:
-
-```bash
-printf '\nsource ~/docker-vpn/examples/hkuvpn.zsh\n' >> ~/.zshrc
-source ~/.zshrc
-```
-
-Bash:
-
-```bash
-printf '\nsource ~/docker-vpn/examples/hkuvpn.zsh\n' >> ~/.bashrc
-source ~/.bashrc
-```
-
-Fish:
-
-```fish
-mkdir -p ~/.config/fish/functions
-cp ~/docker-vpn/examples/hkuvpn.fish ~/.config/fish/functions/hkuvpn.fish
-fish -n ~/.config/fish/functions/hkuvpn.fish
-```
-
-Do not paste the Zsh function into Fish. Fish does not use `export`,
-`VAR=value command`, POSIX `case`, or POSIX function syntax.
-
-If the clone is elsewhere, set `DOCKER_VPN_HOME`:
-
-```bash
-export DOCKER_VPN_HOME=/path/to/docker-vpn        # Zsh/Bash
-```
-
-```fish
-set -Ux DOCKER_VPN_HOME /path/to/docker-vpn      # Fish
-```
-
-## Daily Commands
-
-```bash
-hkuvpn              # endpoint from ~/.vpn/hku.env
-hkuvpn cn           # mainland-facing HKU endpoint
-hkuvpn hk           # Hong Kong HKU endpoint
-hkuvpn --status
-hkuvpn --stop
-hkuvpn --recover    # repair Docker/Colima only; does not request MFA
-```
-
-At `Response:`, enter the current six-digit Authenticator code. Keep the
-terminal open while using the proxies. `Ctrl+C` stops the foreground container.
-
-Endpoint guidance:
-
-| Argument | Server | Usually appropriate when |
-|---|---|---|
-| `cn` | HKU's mainland-facing address | The client is in mainland China |
-| `hk` | `vpn2fa.hku.hk` | The client is in Hong Kong or overseas |
-
-Reachability is more important than geography. If certificate retrieval or TLS
-fails, test the other endpoint and inspect the route selected by your existing
-proxy client.
-
-## Use the Local Proxies
-
-Quick checks from a second terminal:
-
-```bash
-curl -x socks5h://127.0.0.1:1080 -I https://www.hku.hk/
-curl -x http://127.0.0.1:1088 -I https://www.hku.hk/
-```
-
-Use `socks5h`, not `socks5`, when DNS should also be resolved through the proxy.
-The published Docker ports are TCP; do not advertise this setup as a general UDP
-proxy.
-
-Per-command proxy examples:
-
-```bash
-ALL_PROXY=socks5h://127.0.0.1:1080 curl https://lib.hku.hk/   # Zsh/Bash
-```
-
-```fish
-env ALL_PROXY=socks5h://127.0.0.1:1080 curl https://lib.hku.hk/
-# Or limit a variable to the current Fish block:
-begin
-    set -lx ALL_PROXY socks5h://127.0.0.1:1080
-    curl https://lib.hku.hk/
-end
-```
-
-Change host ports in `~/.vpn/hku.env` if they conflict:
-
-```ini
-HKU_SOCKS_PORT=11080
-HKU_HTTP_PORT=11088
-```
-
-## SSH and Remote Desktop Through HKU
+### SSH and Remote Desktop
 
 For a campus host that is reachable only through HKU, merge and edit
 [examples/ssh_config.example](examples/ssh_config.example). The address
@@ -387,13 +371,13 @@ in the rules client's TUN/enhanced mode, or use a remote-desktop client with
 SOCKS support. A process-name rule is optional and platform-specific; an exact
 destination rule is more predictable.
 
-## Give a Campus Computer the Local Proxy
+### Reverse SSH for a Campus Computer
 
 This is useful when a coding agent runs on a school computer but your paid proxy
 subscription is usable only from the mainland client where the rules client is
 running.
 
-### Traffic direction
+#### Traffic Direction
 
 ![Reverse SSH proxy path from a campus coding agent to the client proxy](docs/images/reverse-proxy-flow-en.png)
 
@@ -401,7 +385,7 @@ Although the option is named `RemoteForward`, the SSH control connection still
 starts on the client. `-R` creates a listener on the remote computer and carries
 each accepted connection back to a destination visible from the client.
 
-### One-time SSH configuration
+#### One-Time SSH Configuration
 
 ```sshconfig
 Host campus-host-tunnel
@@ -449,7 +433,7 @@ Browser-only ChatGPT or Claude usage normally belongs on the local browser and
 does not require remote forwarding. Use the tunnel when the process itself runs
 on the campus computer, as with remote Codex, Copilot, package managers, or Git.
 
-### Keep the tunnel alive
+#### Keep the Tunnel Alive
 
 ```bash
 brew install autossh
@@ -465,9 +449,11 @@ Kong while the subscription accepts connections only from mainland China. The
 proxy ingress remains the machine running port `6152`. In that topology, run the
 proxy client on a reachable mainland machine/VPS or buy a supported ingress.
 
-## Advanced Reliability
+## Operations and Troubleshooting
 
-### OpenConnect reconnects
+### Advanced Reliability
+
+#### OpenConnect Reconnects
 
 The entrypoint uses verbose timestamps and a 30-minute reconnect window. Recent
 failures can still end with `CSTP Dead Peer Detection detected dead peer`, TLS
@@ -485,7 +471,7 @@ Use only an IP learned from real DNS or the proxy client's real DNS cache. Do no
 use `198.18.0.0/15` fake-IP results from enhanced mode. Re-check this address
 when HKU changes infrastructure; a stale pin prevents connection.
 
-### Colima recovery levels
+#### Colima Recovery Levels
 
 1. `docker info`: verify the host socket, not only `colima status`.
 2. `hkuvpn --recover`: start/restart Colima without requesting a new MFA code.
@@ -499,7 +485,7 @@ when HKU changes infrastructure; a stale pin prevents connection.
 Deleting the Colima VM is a last resort because it removes local images and
 containers. It is not the first troubleshooting command.
 
-### Proxy-client independence
+#### Rules-Client Independence
 
 Client-specific automatic reload and policy switching are intentionally not in
 the portable launcher. Users of any rules client, or no rules client, must still
@@ -511,9 +497,9 @@ be able to use Docker-VPN. If you automate a client, keep these rules:
 - Restore the HKU group only after the local `1080/1088` listener and tunnel are
   confirmed healthy.
 
-## Troubleshooting
+### Troubleshooting
 
-### No tmux/terminal session remains
+#### No tmux/Terminal Session Remains
 
 Check Docker first. A launcher can exit before the VPN prompt if the Colima host
 socket is unavailable:
@@ -524,7 +510,7 @@ colima status
 hkuvpn --recover
 ```
 
-### Certificate retrieval fails
+#### Certificate Retrieval Fails
 
 Try `hkuvpn cn` and `hkuvpn hk`, check the control-endpoint rule, and remove only
 the affected cache after verifying the endpoint:
@@ -533,7 +519,7 @@ the affected cache after verifying the endpoint:
 rm ~/.vpn/pin-hk.cache
 ```
 
-### Port already in use
+#### Port Already in Use
 
 ```bash
 lsof -nP -iTCP:1080 -sTCP:LISTEN
@@ -542,7 +528,7 @@ lsof -nP -iTCP:1080 -sTCP:LISTEN
 Select different host ports in `~/.vpn/hku.env` and update the proxy-client
 entries to match.
 
-### Container is running but a service fails
+#### Container Is Running but a Service Fails
 
 Test each layer separately:
 
@@ -555,7 +541,7 @@ ssh -G campus-host | grep -E 'proxycommand|hostname|port'
 
 Do not treat `autossh` or `colima status` alone as an end-to-end health check.
 
-## Security
+### Security
 
 - Proxies bind to host loopback only. Do not publish them on `0.0.0.0` without
   authentication and a firewall.
@@ -569,7 +555,47 @@ Do not treat `autossh` or `colima status` alone as an end-to-end health check.
 - Keep private hostnames, campus IPs, account names, certificate caches, logs,
   subscription URLs, and SSH keys out of issues and commits.
 
-## Portable Core and Optional Automation
+## Project Reference
+
+### How It Works
+
+1. Run `hkuvpn` first. The container establishes the OpenConnect tunnel and
+   exposes the loopback SOCKS5 and HTTP listeners.
+2. After the listeners are ready, enter one of those addresses in an
+   application, SSH configuration, browser, or optional rules client.
+3. During use, requests selected by that configuration reach `1080` or `1088`,
+   enter the container, and travel through the HKU AnyConnect tunnel.
+4. A rules client can simultaneously send every non-HKU request to `DIRECT`, an
+   existing proxy or VPN, or another policy. Those paths do not pass through
+   Docker-VPN unless the user explicitly selects the HKU upstream for them.
+
+Cisco AnyConnect is the server protocol in this design. The official Cisco
+desktop client is not started for this connection; OpenConnect runs inside the
+container so it cannot replace the host default route.
+
+### Compatibility and Versions
+
+| Area | Current support |
+|---|---|
+| macOS container runtime | Colima or Docker Desktop |
+| Linux container runtime | Docker Engine |
+| Windows | Docker Desktop with WSL2; community-tested |
+| Shell | Zsh, Bash, and Fish |
+| Rule-based proxy clients | Clash Verge Rev/Mihomo and Surge examples included; the same routing model applies to sing-box and similar clients |
+| OpenConnect in the current `alpine:3.23` image | 9.12 |
+
+OpenConnect runs inside the image, so a Homebrew OpenConnect installation on the
+host is not used. The image follows Alpine 3.23's package. Check the
+[official OpenConnect releases](https://gitlab.com/openconnect/openconnect/-/releases)
+when investigating version-specific behavior.
+
+Confirm the version actually installed in a locally built image:
+
+```bash
+docker run --rm --entrypoint openconnect local/vpn --version
+```
+
+### Portable Core and Optional Automation
 
 The launcher, shell wrappers, routing examples, and container entrypoint are the
 portable core of Docker-VPN. They do not require a rules client, tmux, or a
@@ -581,7 +607,7 @@ diagnostic logs under `~/.vpn/logs/`. These integrations should remain optional
 and machine-specific so the basic HKU proxy continues to work with other proxy
 clients and Docker environments.
 
-## Credits and Licensing
+### Credits and Licensing
 
 Derived from [ethack/docker-vpn](https://github.com/ethack/docker-vpn) and
 adapted for HKU, OpenConnect MFA, and loopback proxy export.
