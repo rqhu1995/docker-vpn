@@ -19,7 +19,7 @@ traffic is routed, and the host's default route stays unchanged.
 > **Quick start:** run `hkuvpn`, enter the current six-digit MFA code, then use
 > SOCKS5 `127.0.0.1:1080` or HTTP `127.0.0.1:1088`.
 
-![Docker-VPN exposes the local HKU proxy before applications use it directly or through routing rules](docs/images/routing-workflow-en.png)
+![Docker-VPN exposes the local HKU proxy before applications use it directly or through routing rules](docs/images/routing-overview-en.png)
 
 A rules client is optional, and this integration is not tied to a particular
 product. Applications, SSH, and browsers can use the local proxy directly;
