@@ -6,11 +6,13 @@
 
 **要解决的问题：** 使用系统级 Cisco AnyConnect 时，网络路由会由 VPN 配置接管。当你一边需要访问 HKU Library、校园 SSH 或远程桌面，一边又需要让其他应用继续使用普通网络或现有代理服务时，频繁开关全局 VPN 很不方便，也容易产生路由冲突。
 
-**Docker-VPN 的做法：** 在隔离容器内运行 OpenConnect，并把 HKU 隧道导出为仅本机可访问的 SOCKS5 和 HTTP 端口。浏览器、命令行、Surge/Clash 规则、SSH 配置或远程桌面目标规则决定哪些流量进入 HKU；主机默认路由保持不变。
+**Docker-VPN 的做法：** 在隔离容器内运行 OpenConnect，并把 HKU 隧道导出为仅本机可访问的 SOCKS5 和 HTTP 端口。应用可以直接使用这些端口，也可以由 Surge、Clash 等可选的分流客户端引用。Docker-VPN 不决定任何非 HKU 流量的去向，主机默认路由保持不变。
 
 > **快速使用：** 运行 `hkuvpn`，输入 Authenticator 当前六位验证码，然后使用 SOCKS5 `127.0.0.1:1080` 或 HTTP `127.0.0.1:1088`。
 
-![Docker-VPN 在直连、现有代理与 HKU 专用路径中的位置](docs/images/split-routing-zh.png)
+![应用可以直接使用 Docker-VPN 的本地 HKU 代理，也可以通过可选的规则客户端使用](docs/images/split-routing-zh.png)
+
+Surge 是本文推荐且说明最完整的分流示例，但不是依赖。应用、SSH 或浏览器可以不经过 Surge，直接设置本地代理；原有的互联网直连、AI 代理和其他 VPN 策略仍由用户自己的分流配置决定。
 
 默认监听端口：
 
@@ -29,7 +31,7 @@
 - [安装](#安装)
 - [日常命令](#日常命令)
 - [使用本地 HKU 代理](#使用本地-hku-代理)
-- [Surge 分流规则](#surge-分流规则)
+- [可选：Surge 分流示例](#可选surge-分流示例)
 - [经 HKU 使用 SSH 和远程桌面](#经-hku-使用-ssh-和远程桌面)
 - [把本机代理提供给学校电脑](#把本机代理提供给学校电脑)
 - [高级稳定性配置](#高级稳定性配置)
@@ -41,7 +43,7 @@
 ## 可以用它做什么
 
 - 访问 HKU 网站和图书馆资源，同时避免无关流量进入学校 VPN。
-- 保持 Surge、Clash、sing-box 或其他现有代理服务在线，让 HKU 流量使用独立路径。
+- 由应用直接使用本地 HKU 代理，或把它作为一个上游加入 Surge、Clash、sing-box 等分流客户端。
 - 通过本地 HKU 代理连接校内 SSH 和远程桌面主机。
 - 通过只绑定回环地址的 SSH Remote Forward，把客户端代理提供给学校电脑上的 Coding Agent。
 - 在 Colima、Docker Desktop 或原生 Docker 环境中，通过 Zsh、Bash 或 Fish 使用同一启动器。
@@ -55,15 +57,15 @@
 |---|---|
 | 本机访问 HKU Library 或校内网站 | 只把 HKU 域名发到 `1080` 或 `1088` |
 | SSH 或远程桌面连接校内电脑 | 只把目标校园 IP/网段发到 HKU |
-| 本机使用 ChatGPT、Claude、Codex、Copilot | 继续使用原有外部代理组，不经过 HKU |
+| 让非 HKU 流量保持任意直连、代理或 VPN 路径 | 保持原有策略不变；Docker-VPN 只增加 HKU 上游 |
 | Coding Agent 运行在学校电脑 | 把本机代理反向转发到远端回环端口 `8152` |
 | 两台电脑都在香港，而订阅只接受大陆入口 | 更换支持的入口，或把代理客户端放到可达的大陆主机；反向 SSH 本身不会改变入口位置 |
 
 ## 工作原理
 
-1. 浏览器、命令行、SSH 配置或规则代理客户端先判断目标是否需要 HKU。
+1. 浏览器、命令行或 SSH 配置可以直接选择 HKU 代理；可选的分流客户端也可以按目标作出相同选择。
 2. 被选中的流量进入本机 SOCKS5 或 HTTP 监听端口，再到达 `vpn-hku` 容器。
-3. OpenConnect 把这些流量送入 HKU AnyConnect 隧道；其余流量继续使用原来的直连或代理路径。
+3. OpenConnect 把这些流量送入 HKU AnyConnect 隧道；所有非 HKU 分流均在本项目范围之外，继续遵循原有策略。
 
 这里的 Cisco AnyConnect 指服务端协议。HKU 连接并不启动 Cisco 官方桌面客户端，而是由容器内的 OpenConnect 建立，因此不会修改主机的全局默认路由。
 
@@ -225,13 +227,15 @@ HKU_SOCKS_PORT=11080
 HKU_HTTP_PORT=11088
 ```
 
-## Surge 分流规则
+## 可选：Surge 分流示例
 
-把 [examples/surge.conf](examples/surge.conf) 合并到现有配置，不要用示例覆盖整份 Surge 配置。关键顺序如下：
+使用 Docker-VPN 并不需要 Surge 或其他分流客户端。应用只要支持 SOCKS5 或 HTTP 代理，就可以直接使用 `1080` 或 `1088`。如果用户已经需要按目标分流，Surge 是本文推荐且说明最完整的接入方式；其他兼容客户端也可以使用同样的本地上游。
+
+Surge 本身可以把不同目标发到 `DIRECT`、外部代理或 VPN、本地 HKU 代理，以及任意其他策略。本示例只定义 HKU 相关的上游和规则；所有无关规则继续保留在用户自己的配置中。请把 [examples/surge.conf](examples/surge.conf) 合并到现有配置，不要用示例覆盖整份 Surge 配置。关键顺序如下：
 
 1. HKU VPN 控制入口必须走 HKU 本地代理之外的路径，否则连接会在隧道尚未建立时进入自身隧道。
 2. 只有明确的校园网段和 HKU 服务进入 `HKU` 组。
-3. AI、普通外部流量和最终规则继续走原有代理组。
+3. 所有非 HKU 规则和最终规则继续遵循现有配置。
 
 最小示例：
 

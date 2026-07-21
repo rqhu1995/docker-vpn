@@ -11,14 +11,20 @@ or a remote desktop while other applications must stay on your normal network
 or an existing proxy service.
 
 **The solution:** Docker-VPN runs OpenConnect in an isolated container and
-exports the HKU tunnel on loopback-only SOCKS5 and HTTP ports. Your browser,
-terminal, Surge/Clash rules, SSH configuration, or remote-desktop routing decides
-what uses HKU. The host's default route stays unchanged.
+exports the HKU tunnel on loopback-only SOCKS5 and HTTP ports. Point an
+application directly at these ports, or reference them from an optional routing
+client such as Surge or Clash. Docker-VPN does not decide how any non-HKU
+traffic is routed, and the host's default route stays unchanged.
 
 > **Quick start:** run `hkuvpn`, enter the current six-digit MFA code, then use
 > SOCKS5 `127.0.0.1:1080` or HTTP `127.0.0.1:1088`.
 
-![Docker-VPN position within direct, existing proxy, and HKU-only network paths](docs/images/split-routing-en.png)
+![Applications can use the local Docker-VPN HKU proxy directly or through an optional rules client](docs/images/split-routing-en.png)
+
+Surge is the recommended and best-documented rules-client example, not a
+dependency. Direct application, SSH, and browser proxy settings work without
+it. Existing direct, AI proxy, and other VPN policies remain the user's own
+routing configuration.
 
 The default listeners are:
 
@@ -37,7 +43,7 @@ The default listeners are:
 - [Install](#install)
 - [Daily Commands](#daily-commands)
 - [Use the Local Proxies](#use-the-local-proxies)
-- [Surge Split Routing](#surge-split-routing)
+- [Optional: Surge Split-Routing Example](#optional-surge-split-routing-example)
 - [SSH and Remote Desktop Through HKU](#ssh-and-remote-desktop-through-hku)
 - [Give a Campus Computer the Local Proxy](#give-a-campus-computer-the-local-proxy)
 - [Advanced Reliability](#advanced-reliability)
@@ -50,8 +56,8 @@ The default listeners are:
 
 - Open HKU websites and library resources without sending unrelated traffic
   through the university VPN.
-- Keep an existing Surge, Clash, sing-box, or other proxy service active while
-  HKU traffic follows a separate route.
+- Use the local HKU proxy directly from an application, or add it as one upstream
+  in Surge, Clash, sing-box, or another rules client.
 - Reach campus SSH and remote-desktop hosts through the local HKU proxy.
 - Give a coding agent on a campus computer access to the proxy running on your
   client through a loopback-only SSH reverse forward.
@@ -69,18 +75,18 @@ your normal Internet proxy, or bypass an organization's acceptable-use policy.
 |---|---|
 | Open HKU library or intranet sites locally | Send only HKU domains to `1080` or `1088` |
 | Reach a campus SSH or remote-desktop host | Route its exact campus IP/subnet through HKU |
-| Use ChatGPT, Claude, Codex, or Copilot locally | Keep them on the existing external proxy group |
+| Keep non-HKU traffic on any direct, proxy, or VPN route | Leave those policies unchanged; Docker-VPN only adds the HKU upstream |
 | Run a coding agent on a campus computer | Reverse-forward the local proxy to remote loopback port `8152` |
 | Both computers are in Hong Kong and the subscription accepts mainland ingress only | Use a supported ingress or move the proxy client to a reachable mainland host; reverse SSH alone cannot change the ingress location |
 
 ## How It Works
 
-1. The browser, terminal, SSH configuration, or a rule-based proxy client
-   decides whether a destination needs HKU.
+1. A browser, terminal, or SSH configuration can select the HKU proxy directly.
+   An optional rules client can make the same choice by destination.
 2. Selected traffic enters the loopback SOCKS5 or HTTP listener and reaches the
    `vpn-hku` container.
 3. OpenConnect carries that traffic through the HKU AnyConnect tunnel. All
-   other traffic keeps its original direct or proxy route.
+   non-HKU routing remains outside this project and keeps its existing policy.
 
 Cisco AnyConnect is the server protocol in this design. The official Cisco
 desktop client is not started for this connection; OpenConnect runs inside the
@@ -257,16 +263,25 @@ HKU_SOCKS_PORT=11080
 HKU_HTTP_PORT=11088
 ```
 
-## Surge Split Routing
+## Optional: Surge Split-Routing Example
 
-Merge [examples/surge.conf](examples/surge.conf) into the existing profile. The
-important order is:
+You do not need Surge or another rules client to use Docker-VPN. If an
+application supports SOCKS5 or HTTP proxies, it can use `1080` or `1088`
+directly. For users who already want destination-based rules, Surge is the
+recommended documented integration; the same upstream model also works in
+other compatible clients.
+
+Surge itself may route different destinations to `DIRECT`, an external proxy or
+VPN, the local HKU proxy, or any number of other policies. This example defines
+only the HKU-related upstream and rules. Keep every unrelated rule in your
+existing profile, and merge [examples/surge.conf](examples/surge.conf) rather
+than replacing the whole profile. The important order is:
 
 1. Route the VPN control endpoint outside the HKU local proxy. Otherwise the
    connection tries to enter its own tunnel before that tunnel exists.
 2. Route only exact campus subnets and HKU services to the `HKU` group.
-3. Keep AI, general external traffic, and the final rule on the existing proxy
-   path.
+3. Leave every non-HKU rule and the final rule under the existing profile's
+   policy.
 
 Minimal fragment:
 
