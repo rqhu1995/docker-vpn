@@ -478,9 +478,9 @@ ssh -G campus-host | grep -E 'proxycommand|hostname|port'
 | Windows | Docker Desktop + WSL2；由社区测试 |
 | Shell | Zsh、Bash 和 Fish |
 | 规则代理客户端 | 提供 Clash Verge Rev/Mihomo 和 Surge 示例；sing-box 等可采用同一分流模型 |
-| 当前 `alpine:3.23` 镜像内 OpenConnect | 9.12 |
+| 当前 `alpine:3.23` 镜像内 OpenConnect | 9.21 |
 
-OpenConnect 在镜像内运行，因此不会使用主机上通过 Homebrew 安装的 OpenConnect。当前镜像跟随 Alpine 3.23 软件包；排查版本相关问题时，请查看 [OpenConnect 官方 Releases](https://gitlab.com/openconnect/openconnect/-/releases)。
+OpenConnect 在镜像内运行，因此不会使用主机上通过 Homebrew 安装的 OpenConnect。由于 Alpine 3.23 软件包仍是旧版，Dockerfile 会从官方发布源码构建 OpenConnect 9.21。构建在编译前同时校验固定的 SHA-256 摘要，以及与 OpenConnect 官方发布密钥指纹匹配的 PGP 签名。排查版本相关问题或准备升级版本时，请查看 [OpenConnect 官方 Releases](https://gitlab.com/openconnect/openconnect/-/releases)。
 
 需要确认本地镜像实际安装的版本时执行：
 
