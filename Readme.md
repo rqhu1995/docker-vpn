@@ -582,12 +582,15 @@ container so it cannot replace the host default route.
 | Windows | Docker Desktop with WSL2; community-tested |
 | Shell | Zsh, Bash, and Fish |
 | Rule-based proxy clients | Clash Verge Rev/Mihomo and Surge examples included; the same routing model applies to sing-box and similar clients |
-| OpenConnect in the current `alpine:3.23` image | 9.12 |
+| OpenConnect in the current `alpine:3.23` image | 9.21 |
 
 OpenConnect runs inside the image, so a Homebrew OpenConnect installation on the
-host is not used. The image follows Alpine 3.23's package. Check the
+host is not used. Because Alpine 3.23 still packages an older release, the
+Dockerfile builds OpenConnect 9.21 from the official release tarball. The build
+checks both the pinned SHA-256 digest and the upstream PGP signature against the
+documented OpenConnect release-key fingerprint before compiling. Check the
 [official OpenConnect releases](https://gitlab.com/openconnect/openconnect/-/releases)
-when investigating version-specific behavior.
+when investigating version-specific behavior or preparing a version bump.
 
 Confirm the version actually installed in a locally built image:
 
