@@ -2,10 +2,10 @@
 set timeout -1
 set password $env(HKU_PASSWORD)
 
-spawn openconnect 121.37.195.197 \
+spawn openconnect vpn2fa.hku.hk \
     --user=runqiuhu@connect.hku.hk \
     --useragent=AnyConnect \
-    --servercert pin-sha256:lsVt/9wLdsGxKYDlCY2t3IY+Bu/FneociBtOd5UJEVo= \
+    --servercert pin-sha256:rcPRg32fisaTgAORYP54vNkckUqcs/18f5Wm/miuX4M= \
     --no-external-auth
 
 expect "Password:"

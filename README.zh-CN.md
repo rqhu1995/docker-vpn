@@ -10,6 +10,8 @@
 
 > **第一次使用的目标：** 按照[快速上手](#快速上手)完成连接，直到测试命令能够通过 HKU 返回 HTTP 响应头。基础连接成功前，不需要配置 Clash、Surge、SSH 或远程桌面。
 
+> **服务变更（2026 年 9 月）：** HKU 已宣布，面向中国大陆的临时备用 VPN 服务合约于 2026 年 9 月 4 日结束，并从 9 月 5 日起停止服务。本项目现仅连接仍需 MFA 的官方服务器 `vpn2fa.hku.hk`。从中国大陆连接时，可达性可能因当地网络而异。
+
 ## 目录
 
 - [快速上手](#快速上手)
@@ -70,18 +72,16 @@ nano ~/.vpn/hku.env
 
 ```ini
 HKU_USER=youruid@connect.hku.hk
-HKU_ENDPOINT=hk
 ```
 
 账号格式以 HKU 实际分配为准。在 Nano 中依次按 `Ctrl+O`、`Enter`、`Ctrl+X` 保存并退出。不要把静态 PIN、MFA 验证码、订阅信息或 SSH 私钥放进仓库。
 
 ### 4. 建立连接
 
-按照当前位置选择其中一条命令：
+连接 HKU 官方 VPN 服务：
 
 ```bash
-~/docker-vpn/bin/hkuvpn hk    # 香港或海外
-~/docker-vpn/bin/hkuvpn cn    # 中国大陆
+~/docker-vpn/bin/hkuvpn
 ```
 
 出现 `Response:` 后输入 Authenticator 当前六位验证码。使用期间保持这个终端开启；按 `Ctrl+C` 可停止连接。
@@ -164,9 +164,7 @@ set -Ux DOCKER_VPN_HOME /path/to/docker-vpn      # Fish
 ### 日常命令
 
 ```bash
-hkuvpn              # 使用 ~/.vpn/hku.env 的默认入口
-hkuvpn cn           # HKU 大陆入口
-hkuvpn hk           # HKU 香港入口
+hkuvpn              # 连接官方 vpn2fa.hku.hk 服务器
 hkuvpn --status
 hkuvpn --stop
 hkuvpn --recover    # 只修复 Docker/Colima，不发起 MFA
@@ -174,12 +172,7 @@ hkuvpn --recover    # 只修复 Docker/Colima，不发起 MFA
 
 出现 `Response:` 后输入 Authenticator 当前六位验证码。使用期间保持终端开启；按 `Ctrl+C` 可停止前台容器。
 
-| 参数 | 入口 | 通常适用位置 |
-|---|---|---|
-| `cn` | HKU 大陆入口地址 | 客户端在中国大陆 |
-| `hk` | `vpn2fa.hku.hk` | 客户端在香港或海外 |
-
-最终应以实际可达性为准。如果证书获取或 TLS 失败，应测试另一个入口，并检查现有代理客户端为控制连接选了什么路径。
+所有地区都使用 `vpn2fa.hku.hk`。旧命令 `hkuvpn hk` 和配置项 `HKU_ENDPOINT=hk` 仍作为兼容写法保留，但连接的也是同一个官方服务。如果证书获取或 TLS 失败，请检查现有代理客户端为控制连接选择的路径；从中国大陆连接时，稍后重试或改用其他合规网络可能会有帮助。
 
 ### 直接使用本地代理
 
@@ -253,13 +246,12 @@ prepend-proxy-groups:
 
 prepend-rules:
   - DOMAIN,vpn2fa.hku.hk,HKU-CONTROL
-  - IP-CIDR,121.37.195.197/32,HKU-CONTROL,no-resolve
   # - IP-CIDR,192.0.2.0/24,HKU,no-resolve
   - DOMAIN-SUFFIX,hku.hk,HKU
   - DOMAIN-SUFFIX,hku.edu.hk,HKU
 ```
 
-必须使用 `prepend-rules`，因为放在现有 `MATCH` 规则之后的规则不会执行。注释中的 `192.0.2.0/24` 是 TEST-NET-1 文档地址；启用前应替换为实际需要的最小校园网段。如果所选 HKU 控制入口无法直连，请把能够到达该入口的现有策略准确名称加入 `HKU-CONTROL`。
+必须使用 `prepend-rules`，因为放在现有 `MATCH` 规则之后的规则不会执行。注释中的 `192.0.2.0/24` 是 TEST-NET-1 文档地址；启用前应替换为实际需要的最小校园网段。如果官方 HKUVPN 服务器无法直连，请把能够到达该服务器的现有策略准确名称加入 `HKU-CONTROL`。
 
 #### Surge
 
@@ -276,15 +268,12 @@ HKU-CONTROL = select, DIRECT, EXISTING-PROXY
 
 [Rule]
 DOMAIN,vpn2fa.hku.hk,HKU-CONTROL
-IP-CIDR,121.37.195.197/32,HKU-CONTROL,no-resolve
 # IP-CIDR,<精确校园网段>,HKU,no-resolve
 DOMAIN-SUFFIX,hku.hk,HKU
 DOMAIN-SUFFIX,hku.edu.hk,HKU
 ```
 
-请把 `EXISTING-PROXY` 替换为当前配置中的准确策略组名称。所选入口能够直连时，`HKU-CONTROL` 选择 `DIRECT`；只有现有策略确实能够到达该入口时才选择该策略。控制组绝不能选择 `HKU-SOCKS5` 或 `HKU-HTTP`。
-
-`121.37.195.197/32` 是 `hkuvpn cn` 当前使用的真实大陆入口，不是示例地址。如果 HKU 更换入口，应同时更新 [`bin/hkuvpn`](bin/hkuvpn)。不要把注释中的校园网段替换成整个 `10.0.0.0/8`；家庭、公司和容器网络经常也使用这个 RFC 1918 地址段。
+请把 `EXISTING-PROXY` 替换为当前配置中的准确策略组名称。官方服务器能够直连时，`HKU-CONTROL` 选择 `DIRECT`；只有现有策略确实能够到达该服务器时才选择该策略。控制组绝不能选择 `HKU-SOCKS5` 或 `HKU-HTTP`。不要把注释中的校园网段替换成整个 `10.0.0.0/8`；家庭、公司和容器网络经常也使用这个 RFC 1918 地址段。
 
 ## 远程访问
 
@@ -405,7 +394,7 @@ HKU_RESOLVE=vpn2fa.hku.hk:REAL_IP
 便携启动器不会默认执行某个规则客户端的自动重载或策略切换，因为用户也可能使用其他客户端，或者完全不使用规则客户端。自行自动化时应保持三条约束：
 
 - HKU 隧道失效时，把 HKU 流量切到明确的 fallback，例如 `DIRECT` 或已有香港线路。
-- `vpn2fa.hku.hk` 和大陆入口绝不能进入 `HKU-SOCKS5`。
+- `vpn2fa.hku.hk` 绝不能进入 `HKU-SOCKS5`。
 - 只有 `1080/1088` 监听和 VPN 隧道都确认健康后，才恢复 HKU 组。
 
 ### 常见故障
@@ -422,7 +411,7 @@ hkuvpn --recover
 
 #### 无法获取证书
 
-分别测试 `hkuvpn cn` 和 `hkuvpn hk`，检查 VPN 控制入口规则。确认入口无误后，只删除对应 cache：
+检查 `vpn2fa.hku.hk` 是否使用控制策略，而不是本地 HKU 代理。确认服务器和路由无误后，只删除它的证书 cache：
 
 ```bash
 rm ~/.vpn/pin-hk.cache

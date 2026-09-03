@@ -649,16 +649,14 @@ docker build -t local/vpn .</code></pre>
 cp ~/docker-vpn/examples/hku.env.example ~/.vpn/hku.env
 printf '%s' 'YOUR_PORTAL_PIN' &gt; ~/.vpn/hku.pass
 chmod 600 ~/.vpn/hku.pass</code></pre>
-                <pre><code>HKU_USER=youruid@connect.hku.hk
-HKU_ENDPOINT=hk</code></pre>
+                <pre><code>HKU_USER=youruid@connect.hku.hk</code></pre>
               </div>
             </li>
 
             <li>
               <h3>Connect</h3>
-              <p>Choose one endpoint, then enter the current six-digit code at <code>Response:</code>.</p>
-              <pre><code>~/docker-vpn/bin/hkuvpn hk  # Hong Kong or overseas
-~/docker-vpn/bin/hkuvpn cn  # mainland China</code></pre>
+              <p>Connect to the official HKUVPN server, then enter the current six-digit code at <code>Response:</code>.</p>
+              <pre><code>~/docker-vpn/bin/hkuvpn</code></pre>
             </li>
 
             <li>

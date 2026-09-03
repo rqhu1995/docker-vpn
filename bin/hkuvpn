@@ -12,9 +12,9 @@ EMPTY_SHA256_PIN="47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="
 
 usage() {
     cat <<'EOF'
-Usage: hkuvpn [cn|hk|--recover|--status|--stop]
+Usage: hkuvpn [hk|--recover|--status|--stop]
 
-  cn, hk      Override HKU_ENDPOINT for this connection
+  hk           Compatibility alias for the official HKUVPN server
   --recover   Repair the Colima/Docker backend without requesting MFA
   --status    Show container, proxy-port, and OpenConnect status
   --stop      Stop the VPN container
@@ -110,7 +110,12 @@ case "$command_name" in
         echo "HKU VPN stopped."
         exit 0
         ;;
-    ""|cn|hk)
+    cn)
+        echo "HKU announced that the alternative mainland VPN service is unavailable from 5 September 2026." >&2
+        echo "Run hkuvpn without an endpoint to use vpn2fa.hku.hk." >&2
+        exit 2
+        ;;
+    ""|hk)
         ;;
     *)
         echo "Unknown argument: $command_name" >&2
@@ -151,10 +156,10 @@ fi
 
 endpoint="${command_name:-${HKU_ENDPOINT:-hk}}"
 case "$endpoint" in
-    cn) host="121.37.195.197" ;;
     hk) host="vpn2fa.hku.hk" ;;
     *)
-        echo "HKU_ENDPOINT must be 'cn' or 'hk', not '$endpoint'." >&2
+        echo "Only the official HKUVPN server vpn2fa.hku.hk is supported." >&2
+        echo "Remove the HKU_ENDPOINT setting from $ENV_FILE and run hkuvpn again." >&2
         exit 2
         ;;
 esac
@@ -172,7 +177,7 @@ if [[ ! "$servercert" =~ ^pin-sha256:[A-Za-z0-9+/]{43}=$ ]] \
     echo "Fetching the certificate pin for $host..."
     if ! fetch_certificate_pin "$host" "$pin_cache"; then
         echo "Could not obtain a valid certificate from $host." >&2
-        echo "Check the route, try the other endpoint, or inspect your proxy-client rules." >&2
+        echo "Check the route or inspect your proxy-client control rule." >&2
         exit 1
     fi
     servercert=$(tr -d '\r\n' <"$pin_cache")
@@ -183,7 +188,7 @@ if [[ -n "${HKU_RESOLVE:-}" ]]; then
     resolve_args=(-e "OC_RESOLVE=$HKU_RESOLVE")
 fi
 
-echo "Endpoint: $endpoint ($host)"
+echo "Server: $host"
 echo "Local proxies: SOCKS5=127.0.0.1:$socks_port HTTP=127.0.0.1:$http_port"
 
 docker rm -f "$CONTAINER_NAME" >/dev/null 2>&1 || true
@@ -199,5 +204,5 @@ exec docker run --rm -it \
     -e "OC_HOST=$host" \
     -e "OC_SERVERCERT=$servercert" \
     -e "OC_MFA_MODE=terminal" \
-    "${resolve_args[@]}" \
+    ${resolve_args[@]+"${resolve_args[@]}"} \
     "$IMAGE_NAME"

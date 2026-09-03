@@ -20,6 +20,12 @@ traffic is routed, and the host's default route stays unchanged.
 > returns HTTP headers through HKU. Configure Clash, Surge, SSH, or remote
 > desktop only after this basic connection works.
 
+> **Service change (September 2026):** HKU announced that the contract for its
+> temporary alternative VPN service for mainland China ends on 4 September
+> 2026, and access is unavailable from 5 September 2026. Docker-VPN now
+> connects only to the official `vpn2fa.hku.hk` server, which continues to
+> require MFA. Reachability from mainland China may vary with the local network.
+
 ## Contents
 
 - [Quick Start](#quick-start)
@@ -85,7 +91,6 @@ Replace the example account:
 
 ```ini
 HKU_USER=youruid@connect.hku.hk
-HKU_ENDPOINT=hk
 ```
 
 Use the account form HKU assigned to you. In Nano, press `Ctrl+O`, `Enter`, then
@@ -94,11 +99,10 @@ subscription, or private key in this repository.
 
 ### 4. Connect
 
-Choose one command for your current location:
+Connect to HKU's official VPN service:
 
 ```bash
-~/docker-vpn/bin/hkuvpn hk    # Hong Kong or overseas
-~/docker-vpn/bin/hkuvpn cn    # mainland China
+~/docker-vpn/bin/hkuvpn
 ```
 
 At `Response:`, enter the current six-digit Authenticator code. Keep this
@@ -191,9 +195,7 @@ set -Ux DOCKER_VPN_HOME /path/to/docker-vpn      # Fish
 ### Daily Commands
 
 ```bash
-hkuvpn              # endpoint from ~/.vpn/hku.env
-hkuvpn cn           # mainland-facing HKU endpoint
-hkuvpn hk           # Hong Kong HKU endpoint
+hkuvpn              # connect to the official vpn2fa.hku.hk server
 hkuvpn --status
 hkuvpn --stop
 hkuvpn --recover    # repair Docker/Colima only; does not request MFA
@@ -202,16 +204,11 @@ hkuvpn --recover    # repair Docker/Colima only; does not request MFA
 At `Response:`, enter the current six-digit Authenticator code. Keep the
 terminal open while using the proxies. `Ctrl+C` stops the foreground container.
 
-Endpoint guidance:
-
-| Argument | Server | Usually appropriate when |
-|---|---|---|
-| `cn` | HKU's mainland-facing address | The client is in mainland China |
-| `hk` | `vpn2fa.hku.hk` | The client is in Hong Kong or overseas |
-
-Reachability is more important than geography. If certificate retrieval or TLS
-fails, test the other endpoint and inspect the route selected by your existing
-proxy client.
+All locations use `vpn2fa.hku.hk`. The older `hkuvpn hk` command and
+`HKU_ENDPOINT=hk` setting remain accepted for compatibility, but they select
+the same official service. If certificate retrieval or TLS fails, inspect the
+route selected by your existing proxy client; from mainland China, retrying
+later or using another permitted Internet connection may help.
 
 ### Use a Proxy Directly
 
@@ -297,7 +294,6 @@ prepend-proxy-groups:
 
 prepend-rules:
   - DOMAIN,vpn2fa.hku.hk,HKU-CONTROL
-  - IP-CIDR,121.37.195.197/32,HKU-CONTROL,no-resolve
   # - IP-CIDR,192.0.2.0/24,HKU,no-resolve
   - DOMAIN-SUFFIX,hku.hk,HKU
   - DOMAIN-SUFFIX,hku.edu.hk,HKU
@@ -306,8 +302,8 @@ prepend-rules:
 `prepend-rules` is important because rules inserted after an existing `MATCH`
 rule never run. The commented `192.0.2.0/24` entry is TEST-NET-1 documentation
 space; replace it with the smallest campus subnet you actually need before
-enabling it. If the chosen HKU control endpoint is not directly reachable, add
-the exact name of a working existing policy to `HKU-CONTROL`.
+enabling it. If the official HKUVPN server is not directly reachable, add the
+exact name of a working existing policy to `HKU-CONTROL`.
 
 #### Surge
 
@@ -325,22 +321,17 @@ HKU-CONTROL = select, DIRECT, EXISTING-PROXY
 
 [Rule]
 DOMAIN,vpn2fa.hku.hk,HKU-CONTROL
-IP-CIDR,121.37.195.197/32,HKU-CONTROL,no-resolve
 # IP-CIDR,<exact-campus-subnet>,HKU,no-resolve
 DOMAIN-SUFFIX,hku.hk,HKU
 DOMAIN-SUFFIX,hku.edu.hk,HKU
 ```
 
 Replace `EXISTING-PROXY` with the exact policy-group name from the current
-profile. Choose `DIRECT` in `HKU-CONTROL` when the endpoint is directly
+profile. Choose `DIRECT` in `HKU-CONTROL` when the official server is directly
 reachable; choose the existing policy only when that route is required and
-works. Never select `HKU-SOCKS5` or `HKU-HTTP` for the control group.
-
-`121.37.195.197/32` is the real mainland endpoint currently selected by
-`hkuvpn cn`, not a sample address. Keep it aligned with
-[`bin/hkuvpn`](bin/hkuvpn) if HKU changes that endpoint. Do not replace the
-commented campus example with all of `10.0.0.0/8`: home, office, and container
-networks commonly use that RFC 1918 range.
+works. Never select `HKU-SOCKS5` or `HKU-HTTP` for the control group. Do not
+replace the commented campus example with all of `10.0.0.0/8`: home, office,
+and container networks commonly use that RFC 1918 range.
 
 ## Remote Access
 
@@ -493,7 +484,7 @@ be able to use Docker-VPN. If you automate a client, keep these rules:
 
 - On HKU tunnel failure, move HKU traffic to an explicit fallback such as
   `DIRECT` or an existing Hong Kong route.
-- Never send `vpn2fa.hku.hk` or the mainland endpoint into `HKU-SOCKS5`.
+- Never send `vpn2fa.hku.hk` into `HKU-SOCKS5`.
 - Restore the HKU group only after the local `1080/1088` listener and tunnel are
   confirmed healthy.
 
@@ -512,8 +503,8 @@ hkuvpn --recover
 
 #### Certificate Retrieval Fails
 
-Try `hkuvpn cn` and `hkuvpn hk`, check the control-endpoint rule, and remove only
-the affected cache after verifying the endpoint:
+Check that `vpn2fa.hku.hk` uses the control policy rather than the local HKU
+proxy. After verifying the server and route, remove only its certificate cache:
 
 ```bash
 rm ~/.vpn/pin-hk.cache
