@@ -246,6 +246,8 @@ prepend-proxy-groups:
 
 prepend-rules:
   - DOMAIN,vpn2fa.hku.hk,HKU-CONTROL
+  - DOMAIN,vpn2fa-a.hku.hk,HKU-CONTROL
+  - DOMAIN,vpn2fa-b.hku.hk,HKU-CONTROL
   # - IP-CIDR,192.0.2.0/24,HKU,no-resolve
   - DOMAIN-SUFFIX,hku.hk,HKU
   - DOMAIN-SUFFIX,hku.edu.hk,HKU
@@ -268,6 +270,8 @@ HKU-CONTROL = select, DIRECT, EXISTING-PROXY
 
 [Rule]
 DOMAIN,vpn2fa.hku.hk,HKU-CONTROL
+DOMAIN,vpn2fa-a.hku.hk,HKU-CONTROL
+DOMAIN,vpn2fa-b.hku.hk,HKU-CONTROL
 # IP-CIDR,<精确校园网段>,HKU,no-resolve
 DOMAIN-SUFFIX,hku.hk,HKU
 DOMAIN-SUFFIX,hku.edu.hk,HKU
@@ -371,13 +375,13 @@ autossh -M 0 -N campus-host-tunnel
 
 容器入口现在启用详细时间戳和 30 分钟重连窗口。断连仍可能以 `CSTP Dead Peer Detection detected dead peer`、TLS read error、`Host is unreachable` 或 cookie 被拒绝结束。
 
-如果重连后立即出现 `401 Unauthorized` 或 cookie rejected，可能是 DNS 把已认证会话切到了另一个 HKU 后端。高级用户可以在单次会话固定真实网关：
+如果首次跳转或重连后出现 TLS 失败、`401 Unauthorized` 或 cookie rejected，可能是 DNS 把会话切到了另一个 HKU 后端。高级用户可以在单次会话同时固定入口和两个官方跳转后端：
 
 ```ini
-HKU_RESOLVE=vpn2fa.hku.hk:REAL_IP
+HKU_RESOLVE=vpn2fa.hku.hk:REAL_IP,vpn2fa-a.hku.hk:REAL_IP,vpn2fa-b.hku.hk:REAL_IP
 ```
 
-只能使用真实 DNS 或代理客户端真实 DNS cache 得到的 IP；不要使用 Enhanced Mode 的 `198.18.0.0/15` fake IP。HKU 基础设施变化后应重新核对，过期固定地址会直接造成断连。
+只能使用真实 DNS 或代理客户端真实 DNS cache 得到的 IP；不要使用 Enhanced Mode 的 `198.18.0.0/15` fake IP。容器入口脚本会把逗号分隔的映射转换为多条 `--resolve`。HKU 基础设施变化后应重新核对每个地址，过期固定地址会直接造成断连。
 
 #### Colima 恢复层级
 
@@ -394,7 +398,7 @@ HKU_RESOLVE=vpn2fa.hku.hk:REAL_IP
 便携启动器不会默认执行某个规则客户端的自动重载或策略切换，因为用户也可能使用其他客户端，或者完全不使用规则客户端。自行自动化时应保持三条约束：
 
 - HKU 隧道失效时，把 HKU 流量切到明确的 fallback，例如 `DIRECT` 或已有香港线路。
-- `vpn2fa.hku.hk` 绝不能进入 `HKU-SOCKS5`。
+- `vpn2fa.hku.hk`、`vpn2fa-a.hku.hk` 和 `vpn2fa-b.hku.hk` 绝不能进入 `HKU-SOCKS5`。
 - 只有 `1080/1088` 监听和 VPN 隧道都确认健康后，才恢复 HKU 组。
 
 ### 常见故障
@@ -411,7 +415,7 @@ hkuvpn --recover
 
 #### 无法获取证书
 
-检查 `vpn2fa.hku.hk` 是否使用控制策略，而不是本地 HKU 代理。确认服务器和路由无误后，只删除它的证书 cache：
+检查 `vpn2fa.hku.hk` 及其 `vpn2fa-a` / `vpn2fa-b` 跳转后端是否使用控制策略，而不是本地 HKU 代理。确认服务器和路由无误后，只删除证书 cache：
 
 ```bash
 rm ~/.vpn/pin-hk.cache

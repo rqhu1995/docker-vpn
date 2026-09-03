@@ -28,8 +28,10 @@ prepend-proxy-groups:
       # official HKUVPN server cannot be reached directly.
 
 prepend-rules:
-  # The VPN control connection must stay outside the HKU local proxy.
+  # The entry point and redirect backends must stay outside the HKU local proxy.
   - DOMAIN,vpn2fa.hku.hk,HKU-CONTROL
+  - DOMAIN,vpn2fa-a.hku.hk,HKU-CONTROL
+  - DOMAIN,vpn2fa-b.hku.hk,HKU-CONTROL
 
   # Add only the campus subnets and services you actually use. TEST-NET-1 is
   # documentation space; replace the example before enabling it.

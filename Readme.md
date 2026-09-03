@@ -294,6 +294,8 @@ prepend-proxy-groups:
 
 prepend-rules:
   - DOMAIN,vpn2fa.hku.hk,HKU-CONTROL
+  - DOMAIN,vpn2fa-a.hku.hk,HKU-CONTROL
+  - DOMAIN,vpn2fa-b.hku.hk,HKU-CONTROL
   # - IP-CIDR,192.0.2.0/24,HKU,no-resolve
   - DOMAIN-SUFFIX,hku.hk,HKU
   - DOMAIN-SUFFIX,hku.edu.hk,HKU
@@ -321,6 +323,8 @@ HKU-CONTROL = select, DIRECT, EXISTING-PROXY
 
 [Rule]
 DOMAIN,vpn2fa.hku.hk,HKU-CONTROL
+DOMAIN,vpn2fa-a.hku.hk,HKU-CONTROL
+DOMAIN,vpn2fa-b.hku.hk,HKU-CONTROL
 # IP-CIDR,<exact-campus-subnet>,HKU,no-resolve
 DOMAIN-SUFFIX,hku.hk,HKU
 DOMAIN-SUFFIX,hku.edu.hk,HKU
@@ -450,16 +454,17 @@ The entrypoint uses verbose timestamps and a 30-minute reconnect window. Recent
 failures can still end with `CSTP Dead Peer Detection detected dead peer`, TLS
 read errors, `Host is unreachable`, or a rejected cookie.
 
-A `401 Unauthorized` or rejected cookie immediately after reconnect can mean
-that DNS selected a different HKU backend. Advanced users can pin one real
-gateway for the session:
+A `401 Unauthorized`, a rejected cookie, or a TLS failure after the initial
+redirect can mean that DNS selected a different HKU backend. Advanced users
+can pin the entry point and both official redirect backends for the session:
 
 ```ini
-HKU_RESOLVE=vpn2fa.hku.hk:REAL_IP
+HKU_RESOLVE=vpn2fa.hku.hk:REAL_IP,vpn2fa-a.hku.hk:REAL_IP,vpn2fa-b.hku.hk:REAL_IP
 ```
 
-Use only an IP learned from real DNS or the proxy client's real DNS cache. Do not
-use `198.18.0.0/15` fake-IP results from enhanced mode. Re-check this address
+Use only IPs learned from real DNS or the proxy client's real DNS cache. Do not
+use `198.18.0.0/15` fake-IP results from enhanced mode. The container entrypoint
+expands the comma-separated mappings into separate `--resolve` entries. Re-check every address
 when HKU changes infrastructure; a stale pin prevents connection.
 
 #### Colima Recovery Levels
@@ -484,7 +489,8 @@ be able to use Docker-VPN. If you automate a client, keep these rules:
 
 - On HKU tunnel failure, move HKU traffic to an explicit fallback such as
   `DIRECT` or an existing Hong Kong route.
-- Never send `vpn2fa.hku.hk` into `HKU-SOCKS5`.
+- Never send `vpn2fa.hku.hk`, `vpn2fa-a.hku.hk`, or `vpn2fa-b.hku.hk` into
+  `HKU-SOCKS5`.
 - Restore the HKU group only after the local `1080/1088` listener and tunnel are
   confirmed healthy.
 
@@ -503,8 +509,9 @@ hkuvpn --recover
 
 #### Certificate Retrieval Fails
 
-Check that `vpn2fa.hku.hk` uses the control policy rather than the local HKU
-proxy. After verifying the server and route, remove only its certificate cache:
+Check that `vpn2fa.hku.hk` and its `vpn2fa-a` / `vpn2fa-b` redirect backends use
+the control policy rather than the local HKU proxy. After verifying the servers
+and routes, remove only the certificate cache:
 
 ```bash
 rm ~/.vpn/pin-hk.cache

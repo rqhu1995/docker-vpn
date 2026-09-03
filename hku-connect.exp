@@ -24,7 +24,16 @@ if {$mfa_mode ni {file terminal}} {
 }
 set resolve_args {}
 if {[info exists env(OC_RESOLVE)] && [string trim $env(OC_RESOLVE)] ne ""} {
-    lappend resolve_args "--resolve=$env(OC_RESOLVE)"
+    # HKU's public entry point redirects to one of several authentication
+    # backends. Accept a comma-separated list so every control hostname can
+    # be pinned to a real address when fake-IP DNS is enabled. A single value
+    # remains backward compatible.
+    foreach mapping [split $env(OC_RESOLVE) ","] {
+        set mapping [string trim $mapping]
+        if {$mapping ne ""} {
+            lappend resolve_args "--resolve=$mapping"
+        }
+    }
 }
 
 proc append_session_marker {message} {
